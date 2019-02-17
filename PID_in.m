@@ -51,8 +51,8 @@ plot(time, arr)
 
 %%  Sine Wave input 
 
-in = [0:0.1:4*pi];
-time = [0:125]; 
+in = [0:0.1:12*pi];
+time = [0:376]; 
 arr = sin(in); 
 subplot(1,2,2)
 plot(time, arr) 
@@ -65,8 +65,8 @@ previousE=0; % error from previous window
 to_plot = []; %intialize for plot view 
 threshold = 0.5; % Set-point 
 k=1; % Proportional Constant 
-k2=1; % Integral Constant 
-k3=1; % Derivative Constant 
+k2=0.008; % Integral Constant 
+k3=0.5; % Derivative Constant 
 for i=1:length(arr) % to the length of the  input 
     
     %%(the length would be infinite, so would have to just establish while
