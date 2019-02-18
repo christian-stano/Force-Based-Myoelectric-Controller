@@ -17,5 +17,6 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  EMG_Channel1.sampling();
+  EMG_Channel2.sampling();
 }

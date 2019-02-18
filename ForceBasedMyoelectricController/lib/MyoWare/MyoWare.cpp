@@ -27,22 +27,31 @@ void MyoWare::sampling() {
 //Manages insertion of each EMG data point into correct position of 200 element buffer
 void MyoWare::bufferManager() {
     if (b1) { //insert in 0-49
-        bufferArray[sampleCounter] = emg;
+        emgSum -= bufferArray[sampleCounter]; //Remove oldest data point from running average
+        bufferArray[sampleCounter] = emg * adcConv;
+        emgSum += bufferArray[sampleCounter]; //Add newest data point to running average
         sampleCounter++;
     } else if (b2) { //insert in 50-99
-        bufferArray[sampleCounter+50] = emg;
+        emgSum -= bufferArray[sampleCounter+50];
+        bufferArray[sampleCounter+50] = emg * adcConv;
+        emgSum += bufferArray[sampleCounter+50];
         sampleCounter++;
     } else if (b3) { //insert in 100-149
-        bufferArray[sampleCounter+100] = emg;
+        emgSum -= bufferArray[sampleCounter+100];
+        bufferArray[sampleCounter+100] = emg * adcConv;
+        emgSum += bufferArray[sampleCounter+100];
         sampleCounter++;
     } else { //insert in 150-199
-        bufferArray[sampleCounter+150] = emg;
+        emgSum -= bufferArray[sampleCounter+150];
+        bufferArray[sampleCounter+150] = emg * adcConv;
+        emgSum += bufferArray[sampleCounter+150];
         sampleCounter++;
     }
 
     //cycles 50 ms populating partition of buffer array every 50 ms
     if (sampleCounter == 49) {
         sampleCounter = 0;
+        meanCalc();
         if (b1) {
             b1 = false;
             b2 = true;
@@ -58,3 +67,25 @@ void MyoWare::bufferManager() {
         }
     }
 }
+
+//Calculate mean of 200 ms EMG signal to rectify with baseline of 0V
+void MyoWare::meanCalc() {
+    emgMean = emgSum/200;
+}
+
+void MyoWare::MAV() {
+    double rectSum = 0; //rectified sum of values
+    for (unsigned int i = 0; i < 199; i++) {
+        rectSum += abs(bufferArray[i] - emgMean);
+    }
+    Serial.println(rectSum/200); //returns MAV of 200 ms window
+}
+
+// //Moving Average Filter: moves signal to baseline, rectifies, smooths
+// //Rectify and mean approach- cutoff frequency ~ 20 Hz
+// double MyoWare::movingAverage() {
+//     double zMa = 0;
+//     for (unsigned int i = 0; i < 200; i++) {
+//
+//     }
+// }
