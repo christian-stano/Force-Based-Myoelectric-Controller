@@ -15,9 +15,9 @@ class MyoControl {
         MyoControl(uint8_t emg_pin);
         void sampling();
         void calibration();
-        bool activation();
+        void activation();
     private:
-        void blinkLED(uint8_t ledPin, unsigned int repeat, unsigned int bTime);
+        // void blinkLED(uint8_t ledPin, unsigned int repeat, unsigned int bTime);
         void meanCalc(unsigned int meanSamples);
         double movAv();
         void mvcCalc(unsigned int mvcSamples);

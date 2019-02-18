@@ -18,17 +18,17 @@ MyoControl::MyoControl(uint8_t emg_pin) {
     emg_pin = _emg_pin;
 }
 
-/* blinkLED blinks a led "repeat" times with a "bTime" interval between on and off */
-void MyoControl::blinkLED(uint8_t ledPin, unsigned int repeat, unsigned int bTime) {
-    pinMode(ledPin, OUTPUT);
-    unsigned int i;
-    for(i=0;i<repeat;i++) {
-        digitalWrite(ledPin,HIGH);
-        delay(bTime);
-        digitalWrite(ledPin,LOW);
-        delay(bTime);
-    }
-}
+// /* blinkLED blinks a led "repeat" times with a "bTime" interval between on and off */
+// void MyoControl::blinkLED(uint8_t ledPin, unsigned int repeat, unsigned int bTime) {
+//     pinMode(ledPin, OUTPUT);
+//     unsigned int i;
+//     for(i=0;i<repeat;i++) {
+//         digitalWrite(ledPin,HIGH);
+//         delay(bTime);
+//         digitalWrite(ledPin,LOW);
+//         delay(bTime);
+//     }
+// }
 
 /* sampling reads the ADC every 1 ms with the MsTimer2 interrupt. */
 void MyoControl::sampling() {
@@ -88,32 +88,33 @@ void MyoControl::mvcCalc(unsigned int mvcSamples) {
 void MyoControl::calibration() {
     /* System calibration */
     /* Calibration step #1: calculate the baseline of the signal during 10 s */
-    blinkLED(13,1,500); // LED blinks once to indicate calibration step #1 start
+    // blinkLED(13,1,500); // LED blinks once to indicate calibration step #1 start
     meanCalc(10000);
-    blinkLED(13,1,500); // LED blinks once to indicate calibration step #1 end
+    // blinkLED(13,1,500); // LED blinks once to indicate calibration step #1 end
     delay(1000);
     /* Calibration step #2: calculate the maximum voluntary contraction during 5 s*/
-    blinkLED(13,2,500); // LED blinks twice to indicate calibration step #2 start
+    // blinkLED(13,2,500); // LED blinks twice to indicate calibration step #2 start
     mvcCalc(5000);
-    blinkLED(13,2,500); // LED bliks twice to indicate calibration step #2 end
+    // blinkLED(13,2,500); // LED bliks twice to indicate calibration step #2 end
     delay(1000);
 }
 
-bool MyoControl::activation() {
+void MyoControl::activation() {
     delayMicroseconds(50);
     if(sampleOk) {
         sampleOk = false;
         double emgMovav = movAv(); // Gets the amplitude of the measured EMG signal
         /* If the amplitude of the EMG signal is greater than the activation threshold
         (a 35% of the MVC), there is a muscle activation. */
-        if(emgMovav > 0.35*emgMvc) {
-            isActive = true;
-        }
-        /* If the amplitude of the EMG signal is below the activation threshold,
-        there is no muscle activation. */
-        else {
-            isActive = false;
-        }
+        // if(emgMovav > 0.35*emgMvc) {
+            // isActive = true;
+        // }
+        // /* If the amplitude of the EMG signal is below the activation threshold,
+        // there is no muscle activation. */
+        // else {
+        //     isActive = false;
+        // }
+        Serial.println(emg_pin + ' ' + emgMovav);
     }
-    return isActive;
+    // return isActive;
 }
