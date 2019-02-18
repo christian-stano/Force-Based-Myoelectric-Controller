@@ -1,30 +1,31 @@
-#ifndef MyoWare_h
-#define MyoWare_h
+/*
+ * Copyright 2019 Autofabricantes
+ * Author: Alvaro Villoslada (Alvipe)
+ * This file is part of Myoware-servo-control (https://github.com/Autofabricantes/Myoware-servo-control).
+ * MyoControl is distributed under a GPL 3.0 license
+ */
 
-#include "Arduino.h"
+#ifndef MyoControl_h
+#define MyoControl_h
 
-class MyoWare {
-public:
-    MyoWare(uint8_t EMG_PIN);
-    void sampling();
-    bool activation();
-    // void calibration(); implement in next iteration
+#include <Arduino.h>
 
-private:
-    void meanCalc();
-    // double movingAverage();
-    // void mvcCalc(unsigned int mvcSamples);
-    void bufferManager();
-    void MAV();
-    uint8_t _EMG_PIN;
-    volatile unsigned int emg;
-    static int bufferArray[200];
-    bool b1, b2, b3, b4;
-    int sampleCounter;
-    double emgMean;
-    double emgSum;
-    double emgMVC;
-    bool sampleOk, isActive;
+class MyoControl {
+    public:
+        MyoControl(uint8_t emg_pin);
+        void sampling();
+        void calibration();
+        bool activation();
+    private:
+        void blinkLED(uint8_t ledPin, unsigned int repeat, unsigned int bTime);
+        void meanCalc(unsigned int meanSamples);
+        double movAv();
+        void mvcCalc(unsigned int mvcSamples);
+        uint8_t _emg_pin;
+        volatile unsigned int emg;
+        double emgMean;
+        double emgMvc;
+        bool sampleOk, isActive;
 };
 
 #endif

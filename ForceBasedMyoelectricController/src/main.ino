@@ -1,3 +1,10 @@
+/*
+ * Copyright 2019 Autofabricantes
+ * Author: Alvaro Villoslada (Alvipe)
+ * This file is part of Myoware-servo-control (https://github.com/Autofabricantes/Myoware-servo-control).
+ * This code is distributed under a GPL 3.0 license
+ */
+
 #include <Arduino.h>
 #include <MsTimer2.h>
 #include <MyoWare.h>
