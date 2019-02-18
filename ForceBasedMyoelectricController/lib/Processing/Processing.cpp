@@ -1,5 +1,5 @@
 #include "Arduino.h"
-#include "MyoWare.h"
+#include "MyoControl.h"
 #include "Processing.h"
 
 sampleCounter = 0; //determines index of array to populate with data point

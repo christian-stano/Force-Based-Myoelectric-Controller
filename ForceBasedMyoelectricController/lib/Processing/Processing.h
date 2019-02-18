@@ -2,7 +2,7 @@
 #define Processing_h
 
 #include "Arduino.h"
-#include "MyoWare.h"
+#include "MyoControl.h"
 
 class Processing {
 public:
