@@ -1,3 +1,5 @@
+#include <MyoControl.h>
+
 /*
  * Copyright 2019 Autofabricantes
  * Author: Alvaro Villoslada (Alvipe)
@@ -7,10 +9,9 @@
 
 #include <Arduino.h>
 #include <MsTimer2.h>
-#include <MyoWare.h>
 
-MyoWare EMG_Channel1(A0);
-MyoWare EMG_Channel2(A1);
+MyoControl EMG_Channel1(A0);
+MyoControl EMG_Channel2(A1);
 
 void sampling() {
     EMG_Channel1.sampling();
