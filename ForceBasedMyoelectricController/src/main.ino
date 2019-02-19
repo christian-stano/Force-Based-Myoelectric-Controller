@@ -27,5 +27,6 @@ void setup() {
 }
 
 void loop() {
-  
+  EMG_Channel1.activation();
+  EMG_Channel2.activation();
 }

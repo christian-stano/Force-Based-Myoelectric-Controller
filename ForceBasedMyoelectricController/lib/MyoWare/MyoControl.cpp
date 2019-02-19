@@ -89,11 +89,13 @@ void MyoControl::calibration() {
     /* System calibration */
     /* Calibration step #1: calculate the baseline of the signal during 10 s */
     // blinkLED(13,1,500); // LED blinks once to indicate calibration step #1 start
+    Serial.println("Calibration: keep muscles relaxed for 10 s");
     meanCalc(10000);
     // blinkLED(13,1,500); // LED blinks once to indicate calibration step #1 end
     delay(1000);
     /* Calibration step #2: calculate the maximum voluntary contraction during 5 s*/
     // blinkLED(13,2,500); // LED blinks twice to indicate calibration step #2 start
+    Serial.println("Calibration: perform MVC for 5 seconds");
     mvcCalc(5000);
     // blinkLED(13,2,500); // LED bliks twice to indicate calibration step #2 end
     delay(1000);
