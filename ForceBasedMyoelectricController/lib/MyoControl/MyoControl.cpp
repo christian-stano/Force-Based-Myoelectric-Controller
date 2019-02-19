@@ -116,7 +116,9 @@ void MyoControl::activation() {
         // else {
         //     isActive = false;
         // }
-        Serial.println(_emg_pin + ' ' + emgMovav);
+        Serial.print(_emg_pin);
+        Serial.print(' , ');
+        Serial.println(emgMovav);
     }
     // return isActive;
 }
