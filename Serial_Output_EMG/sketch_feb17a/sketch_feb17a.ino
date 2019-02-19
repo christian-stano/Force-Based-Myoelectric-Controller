@@ -11,15 +11,15 @@ void setup() {
 void loop() {
   // read the input on analog pin 0:
   int sensorValue = analogRead(A0);
-  int sensorValue2 = analogRead (A1);
+  //int sensorValue2 = analogRead (A1);
 
   double outputfinal= analogRead(A2); 
   // print out the value you read:
-    Serial.print(sensorValue);
+    Serial.println(sensorValue);
     Serial.print(" ");   
     Serial.print(",");              //seperator
     Serial.print(" ");   
-    Serial.println(sensorValue2);          //the second variable for plottingincluding line break
+    //Serial.println(sensorValue2);          //the second variable for plottingincluding line break
     
   delay(1);        // delay in between reads for stability
 }
