@@ -33,7 +33,9 @@ MyoControl::MyoControl(uint8_t emg_pin) {
 /* sampling reads the ADC every 1 ms with the MsTimer2 interrupt. */
 void MyoControl::sampling() {
     emg = analogRead(_emg_pin);
+    Serial.println(sampleOk);
     sampleOk = true; // sampleOk indicates that a new sample is ready to be processed
+    Serial.println(sampleOk);
 }
 
 /* meanCalc computes the mean value of the EMG signal during a period of
@@ -91,12 +93,14 @@ void MyoControl::calibration() {
     // blinkLED(13,1,500); // LED blinks once to indicate calibration step #1 start
     Serial.println("Calibration: keep muscles relaxed for 10 s");
     meanCalc(10000);
+    Serial.println("Relaxed calibration complete");
     // blinkLED(13,1,500); // LED blinks once to indicate calibration step #1 end
     delay(1000);
     /* Calibration step #2: calculate the maximum voluntary contraction during 5 s*/
     // blinkLED(13,2,500); // LED blinks twice to indicate calibration step #2 start
     Serial.println("Calibration: perform MVC for 5 seconds");
     mvcCalc(5000);
+    Serial.println("MVC calibration complete");
     // blinkLED(13,2,500); // LED bliks twice to indicate calibration step #2 end
     delay(1000);
 }

@@ -23,7 +23,9 @@ void setup() {
   MsTimer2::set(1,sampling);
   MsTimer2::start();
   delay(5000);
+  Serial.println("Calibrating channel 1");
   EMG_Channel1.calibration();
+  Serial.println("Calibrating channel 2");
   EMG_Channel2.calibration();
 }
 
