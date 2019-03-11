@@ -17,25 +17,26 @@ MyoControl EMG_Channel2(channel2);
 
 void sampling() {
     EMG_Channel1.sampling();
-    Serial.print(' , ');
+    Serial.print(" , ");
     EMG_Channel2.sampling();
     Serial.println();
 }
 
 void setup() {
-  Serial.begin(115200);
-  MsTimer2::set(1,sampling);
-  MsTimer2::start();
-  // delay(5000);
-  // Serial.println("Calibrating channel 1");
-  // delay(1000);
-  // EMG_Channel1.calibration();
-  // Serial.println("Calibrating channel 2");
-  // delay(1000);
-  // EMG_Channel2.calibration();
+
+    Serial.begin(115200);
+    MsTimer2::set(1,sampling);
+    MsTimer2::start();
+    delay(5000);
+    Serial.println("Calibrating channel 1");
+    delay(1000);
+    EMG_Channel1.calibration();
+    Serial.println("Calibrating channel 2");
+    delay(1000);
+    EMG_Channel2.calibration();
 }
 
 void loop() {
-  // EMG_Channel1.activation();
-  // EMG_Channel2.activation();
+    EMG_Channel1.activation();
+    EMG_Channel2.activation();
 }
