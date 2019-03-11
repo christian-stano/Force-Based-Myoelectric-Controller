@@ -13,7 +13,7 @@ static const double adcRef = 5.00;
 static const unsigned int adcRes = 1023;
 static const double adcConv = adcRef/adcRes;
 
-MyoControl::MyoControl(uint8_t emg_pin) {
+MyoControl::MyoControl(int emg_pin) {
     pinMode(emg_pin, INPUT);
     emg_pin = _emg_pin;
 }
@@ -33,9 +33,7 @@ MyoControl::MyoControl(uint8_t emg_pin) {
 /* sampling reads the ADC every 1 ms with the MsTimer2 interrupt. */
 void MyoControl::sampling() {
     emg = analogRead(_emg_pin);
-    Serial.println(sampleOk);
     sampleOk = true; // sampleOk indicates that a new sample is ready to be processed
-    Serial.println(sampleOk);
 }
 
 /* meanCalc computes the mean value of the EMG signal during a period of
@@ -50,6 +48,7 @@ void MyoControl::meanCalc(unsigned int meanSamples)
         if(sampleOk)
         {
             sampleOk = false;
+            Serial.println("Sample found to be Ok");
             i++;
             emgMean = emgMean + emg*adcConv;
         }

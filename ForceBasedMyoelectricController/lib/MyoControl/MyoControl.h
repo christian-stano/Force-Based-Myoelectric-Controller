@@ -12,7 +12,7 @@
 
 class MyoControl {
     public:
-        MyoControl(uint8_t emg_pin);
+        MyoControl(int emg_pin);
         void sampling();
         void calibration();
         void activation();
@@ -21,7 +21,7 @@ class MyoControl {
         void meanCalc(unsigned int meanSamples);
         double movAv();
         void mvcCalc(unsigned int mvcSamples);
-        uint8_t _emg_pin;
+        int _emg_pin;
         volatile unsigned int emg;
         double emgMean;
         double emgMvc;

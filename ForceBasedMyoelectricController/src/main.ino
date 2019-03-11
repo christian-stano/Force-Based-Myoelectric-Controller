@@ -10,8 +10,11 @@
 #include <Arduino.h>
 #include <MsTimer2.h>
 
-MyoControl EMG_Channel1(A0);
-MyoControl EMG_Channel2(A1);
+int channel1 = A0;
+int channel2 = A1;
+
+MyoControl EMG_Channel1(channel1);
+MyoControl EMG_Channel2(channel2);
 
 void sampling() {
     EMG_Channel1.sampling();
@@ -24,12 +27,14 @@ void setup() {
   MsTimer2::start();
   delay(5000);
   Serial.println("Calibrating channel 1");
+  delay(1000);
   EMG_Channel1.calibration();
   Serial.println("Calibrating channel 2");
+  delay(1000);
   EMG_Channel2.calibration();
 }
 
 void loop() {
-  EMG_Channel1.activation();
-  EMG_Channel2.activation();
+  // EMG_Channel1.activation();
+  // EMG_Channel2.activation();
 }
