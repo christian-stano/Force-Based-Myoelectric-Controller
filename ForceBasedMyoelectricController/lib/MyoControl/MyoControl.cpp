@@ -14,8 +14,8 @@ static const unsigned int adcRes = 1023;
 static const double adcConv = adcRef/adcRes;
 
 MyoControl::MyoControl(int emg_pin) {
-    pinMode(emg_pin, INPUT);
-    emg_pin = _emg_pin;
+    // pinMode(emg_pin, INPUT);
+    emgpin = emg_pin;
 }
 
 // /* blinkLED blinks a led "repeat" times with a "bTime" interval between on and off */
@@ -32,7 +32,8 @@ MyoControl::MyoControl(int emg_pin) {
 
 /* sampling reads the ADC every 1 ms with the MsTimer2 interrupt. */
 void MyoControl::sampling() {
-    emg = analogRead(_emg_pin);
+    emg = analogRead(emgpin);
+    Serial.print(emg);
     sampleOk = true; // sampleOk indicates that a new sample is ready to be processed
 }
 
@@ -119,9 +120,6 @@ void MyoControl::activation() {
         // else {
         //     isActive = false;
         // }
-        Serial.print(_emg_pin);
-        Serial.print(' , ');
-        Serial.println(emgMovav);
     }
     // return isActive;
 }

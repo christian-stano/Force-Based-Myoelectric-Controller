@@ -21,7 +21,7 @@ class MyoControl {
         void meanCalc(unsigned int meanSamples);
         double movAv();
         void mvcCalc(unsigned int mvcSamples);
-        int _emg_pin;
+        int emgpin;
         volatile unsigned int emg;
         double emgMean;
         double emgMvc;
