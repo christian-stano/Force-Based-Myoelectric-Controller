@@ -7,6 +7,8 @@
 
 #include "Arduino.h"
 #include "MyoControl.h"
+// #include "MsTimer2.h"
+#include "IntervalTimer.h"
 
 static const unsigned int sampleTime = 1;
 static const double adcRef = 5.00;
@@ -14,7 +16,6 @@ static const unsigned int adcRes = 1023;
 static const double adcConv = adcRef/adcRes;
 
 MyoControl::MyoControl(int emg_pin) {
-    // pinMode(emg_pin, INPUT);
     emgpin = emg_pin;
 }
 
@@ -33,8 +34,8 @@ MyoControl::MyoControl(int emg_pin) {
 /* sampling reads the ADC every 1 ms with the MsTimer2 interrupt. */
 void MyoControl::sampling() {
     emg = analogRead(emgpin);
-    Serial.print(emg);
     sampleOk = true; // sampleOk indicates that a new sample is ready to be processed
+    noInterrupts();
 }
 
 /* meanCalc computes the mean value of the EMG signal during a period of
@@ -49,13 +50,15 @@ void MyoControl::meanCalc(unsigned int meanSamples)
         if(sampleOk)
         {
             sampleOk = false;
-            Serial.println("Sample found to be Ok");
             i++;
             emgMean = emgMean + emg*adcConv;
         }
+        interrupts();
     }
     i = 0;
     emgMean = emgMean/meanSamples;
+    Serial.print("EMG Mean is: ");
+    Serial.println(emgMean);
 }
 
 /* movAv computes the running moving average of the EMG signal. First, the
@@ -66,6 +69,7 @@ double MyoControl::movAv() {
     double emgZero = 0.00, emgMovav = 0.00;
     emgZero = emg*adcConv - emgMean; // Signal with 0 V baseline
     emgMovav = emgMovav*0.99 + abs(emgZero)*0.01; // Rectified and smoothed signal
+    interrupts();
     return emgMovav;
 }
 
@@ -99,10 +103,20 @@ void MyoControl::calibration() {
     /* Calibration step #2: calculate the maximum voluntary contraction during 5 s*/
     // blinkLED(13,2,500); // LED blinks twice to indicate calibration step #2 start
     Serial.println("Calibration: perform MVC for 5 seconds");
-    mvcCalc(5000);
+    // mvcCalc(5000);
     Serial.println("MVC calibration complete");
     // blinkLED(13,2,500); // LED bliks twice to indicate calibration step #2 end
     delay(1000);
+}
+
+/*
+Prints the raw emg data followed by the filtered emg data in the format
+rawemg1, filteremg1, rawemg2, filteremg2
+*/
+void MyoControl::printSamples() {
+    Serial.print(emg);
+    Serial.print(", ");
+    Serial.print(movAv());
 }
 
 void MyoControl::activation() {

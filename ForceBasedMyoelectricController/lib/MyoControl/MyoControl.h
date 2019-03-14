@@ -16,6 +16,7 @@ class MyoControl {
         void sampling();
         void calibration();
         void activation();
+        void printSamples();
     private:
         // void blinkLED(uint8_t ledPin, unsigned int repeat, unsigned int bTime);
         void meanCalc(unsigned int meanSamples);

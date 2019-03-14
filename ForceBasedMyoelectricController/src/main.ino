@@ -7,7 +7,7 @@
 
 #include <MyoControl.h>
 #include <Arduino.h>
-#include <MsTimer2.h>
+#include <IntervalTimer.h>
 
 int channel1 = A0;
 int channel2 = A1;
@@ -15,28 +15,32 @@ int channel2 = A1;
 MyoControl EMG_Channel1(channel1);
 MyoControl EMG_Channel2(channel2);
 
+IntervalTimer myTimer;
+
 void sampling() {
     EMG_Channel1.sampling();
-    Serial.print(" , ");
     EMG_Channel2.sampling();
-    Serial.println();
 }
 
 void setup() {
-
     Serial.begin(115200);
-    MsTimer2::set(1,sampling);
-    MsTimer2::start();
+    myTimer.begin(sampling,1000); //samples every 1000 microseconds
     delay(5000);
-    Serial.println("Calibrating channel 1");
+    Serial.println("Calibrating channel 1:");
     delay(1000);
     EMG_Channel1.calibration();
-    Serial.println("Calibrating channel 2");
+    Serial.println("Channel 1 calibrated");
+    Serial.println("Calibrating channel 2:");
     delay(1000);
     EMG_Channel2.calibration();
+    Serial.println("Channel 2 calibrated");
+    Serial.println("Calibration complete: begin function in 5 seconds");
+    delay(5000);
 }
 
 void loop() {
-    EMG_Channel1.activation();
-    EMG_Channel2.activation();
+    EMG_Channel1.printSamples();
+    Serial.print(", ");
+    EMG_Channel2.printSamples();
+    Serial.println();
 }
