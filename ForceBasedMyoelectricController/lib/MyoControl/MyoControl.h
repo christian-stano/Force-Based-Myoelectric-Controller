@@ -25,6 +25,8 @@ class MyoControl {
         int emgpin;
         volatile unsigned int emg;
         double emgMean;
+        double emgAvg;
+        unsigned int sampleCounter;
         double emgMvc;
         bool sampleOk, isActive;
 };

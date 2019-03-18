@@ -36,11 +36,15 @@ void setup() {
     Serial.println("Channel 2 calibrated");
     Serial.println("Calibration complete: begin function in 5 seconds");
     delay(5000);
+    // EMG_Channel1.printSamples();
+    EMG_Channel2.printSamples();
 }
 
 void loop() {
-    EMG_Channel1.printSamples();
-    Serial.print(", ");
-    EMG_Channel2.printSamples();
-    Serial.println();
+//     for (uint8_t i = 0; i < 3000; i++) {
+//     EMG_Channel1.printSamples();
+//     Serial.print(", ");
+//     EMG_Channel2.printSamples();
+// }   Serial.println();
+
 }

@@ -35,6 +35,7 @@ MyoControl::MyoControl(int emg_pin) {
 void MyoControl::sampling() {
     emg = analogRead(emgpin);
     sampleOk = true; // sampleOk indicates that a new sample is ready to be processed
+    sampleCounter++;
     noInterrupts();
 }
 
@@ -57,6 +58,7 @@ void MyoControl::meanCalc(unsigned int meanSamples)
     }
     i = 0;
     emgMean = emgMean/meanSamples;
+    sampleCounter = 0;
     Serial.print("EMG Mean is: ");
     Serial.println(emgMean);
 }
@@ -114,9 +116,16 @@ Prints the raw emg data followed by the filtered emg data in the format
 rawemg1, filteremg1, rawemg2, filteremg2
 */
 void MyoControl::printSamples() {
-    Serial.print(emg);
-    Serial.print(", ");
-    Serial.print(movAv());
+    // delayMicroseconds(50);
+    // Serial.print(emg*adcConv);
+    // Serial.print(", ");
+    delayMicroseconds(50);
+    emgAvg = emgAvg + movAv();
+    if (sampleCounter >= 1000) {
+    Serial.print(emgAvg/1000);
+    sampleCounter=0;
+}
+    // Serial.print(movAv());
 }
 
 void MyoControl::activation() {
