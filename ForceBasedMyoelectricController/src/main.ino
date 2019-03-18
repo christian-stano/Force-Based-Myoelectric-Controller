@@ -15,7 +15,16 @@ int channel2 = A1;
 MyoControl EMG_Channel1(channel1);
 MyoControl EMG_Channel2(channel2);
 
-IntervalTimer myTimer;
+/* Interval Timer allows interrupt to be called every 1 ms to set consistent
+sampling frequency of 1000 Hz
+*/
+IntervalTimer calibrationTimer;
+IntervalTimer functionTimer;
+
+void calibrationSampling() {
+    EMG_Channel1.calibrationSampling();
+    EMG_Channel2.calibrationSampling();
+}
 
 void sampling() {
     EMG_Channel1.sampling();
@@ -24,7 +33,8 @@ void sampling() {
 
 void setup() {
     Serial.begin(115200);
-    myTimer.begin(sampling,1000); //samples every 1000 microseconds
+    //Calibration
+    calibrationTimer.begin(sampling,1000); //samples every 1000 microseconds
     delay(5000);
     Serial.println("Calibrating channel 1:");
     delay(1000);
@@ -34,17 +44,16 @@ void setup() {
     delay(1000);
     EMG_Channel2.calibration();
     Serial.println("Channel 2 calibrated");
+    calibrationTimer.end(); //Stops sampling of calibration period
+    //Function
     Serial.println("Calibration complete: begin function in 5 seconds");
+    functionTimer.begin(sampling,1000);
     delay(5000);
-    // EMG_Channel1.printSamples();
-    EMG_Channel2.printSamples();
 }
 
 void loop() {
-//     for (uint8_t i = 0; i < 3000; i++) {
-//     EMG_Channel1.printSamples();
-//     Serial.print(", ");
-//     EMG_Channel2.printSamples();
-// }   Serial.println();
-
+    Serial.println("EMG Channel 1 Values: ");
+    EMG_Channel1.printSamples();
+    Serial.println("EMG Channel 1 Values: ");
+    EMG_Channel2.printSamples();
 }
