@@ -73,5 +73,11 @@ void loop() {
         }
         double ch1MAV = ch1sum/200;
         double ch2MAV = ch2sum/200;
+        sampleCounter = 0;
+        if (slidingWindow == 150) {
+            slidingWindow = 0;
+        } else {
+            slidingWindow += 50;
+        }
     }
 }
