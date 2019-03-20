@@ -12,6 +12,10 @@
 int channel1 = A0;
 int channel2 = A1;
 
+double processedDataArr[2][200];
+unsigned int sampleCounter = 0;
+unsigned int slidingWindow = 0;
+
 MyoControl EMG_Channel1(channel1);
 MyoControl EMG_Channel2(channel2);
 
@@ -26,15 +30,19 @@ void calibrationSampling() {
     EMG_Channel2.calibrationSampling();
 }
 
-void sampling() {
-    EMG_Channel1.sampling();
-    EMG_Channel2.sampling();
+void sample() {
+    double emg1 = EMG_Channel1.sampling();
+    double emg2 = EMG_Channel2.sampling();
+    processedDataArr[1][sampleCounter+slidingWindow];
+    processedDataArr[2][sampleCounter+slidingWindow];
+    sampleCounter++;
 }
 
 void setup() {
+    Serial.println("Successful Upload: Starting Program");
     Serial.begin(115200);
     //Calibration
-    calibrationTimer.begin(sampling,1000); //samples every 1000 microseconds
+    calibrationTimer.begin(calibrationSampling,1000); //samples every 1000 microseconds
     delay(5000);
     Serial.println("Calibrating channel 1:");
     delay(1000);
@@ -47,13 +55,23 @@ void setup() {
     calibrationTimer.end(); //Stops sampling of calibration period
     //Function
     Serial.println("Calibration complete: begin function in 5 seconds");
-    functionTimer.begin(sampling,1000);
     delay(5000);
+    functionTimer.begin(sample,1000);
+    while(sampleCounter < 199) {
+    }
+    sampleCounter == 49;
 }
 
 void loop() {
-    Serial.println("EMG Channel 1 Values: ");
-    EMG_Channel1.printSamples();
-    Serial.println("EMG Channel 1 Values: ");
-    EMG_Channel2.printSamples();
+    if (sampleCounter == 49) {
+        noInterrupts();
+        double ch1sum = 0;
+        double ch2sum = 0;
+        for (unsigned int i = 0; i < 199; i++) {
+            ch1sum += bufferArray[1][i];
+            ch2sum += bufferArray[2][i];
+        }
+        double ch1MAV = ch1sum/200;
+        double ch2MAV = ch2sum/200;
+    }
 }

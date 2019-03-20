@@ -7,14 +7,13 @@
 
 #include "Arduino.h"
 #include "MyoControl.h"
-// #include "MsTimer2.h"
 #include "IntervalTimer.h"
 
 static const unsigned int sampleTime = 1;
 static const double adcRef = 5.00;
 static const unsigned int adcRes = 1023;
 static const double adcConv = adcRef/adcRes; //convert bits to voltage
-static const double fc = 5; //low pass recursive Tunstin approximation cutoff frequency
+static const double fc = 3; //low pass recursive Tustin approximation cutoff frequency
 static const double tau = 1/(2*PI*fc);
 static const double alpha1 = (-0.001+2*tau)/(2*tau+0.001);
 static const double alpha2 = 0.001/(2*tau+0.001);
@@ -23,7 +22,7 @@ MyoControl::MyoControl(int emg_pin) {
     emgpin = emg_pin;
     emg_u_prev = 0;
     emg_f_prev = 0;
-    sampleCounter = 0;
+    // sampleCounter = 0;
 }
 
 // /* blinkLED blinks a led "repeat" times with a "bTime" interval between on and off */
@@ -45,15 +44,23 @@ void MyoControl::calibrationSampling() {
     noInterrupts();
 }
 
-void MyoControl::sampling() {
+/* Samples ADC every 1 ms, performs baseline rectification, Tunstin approximation,
+and adds to buffer
+*/
+double MyoControl::sampling() {
     emg = analogRead(emgpin);
     double emgBaseline = emg*adcConv-emgMean;
     double emgRectify = abs(emgBaseline);
     double emgFilt = alpha1*emg_f_prev + alpha2*(emgRectify+emg_u_prev);
-    bufferArray[sampleCounter] = emgFilt;
-    sampleCounter++;
+    // bufferArray[sampleCounter] = emgFilt;
+    // Serial.print(emgpin);
+    // Serial.print(": ");
+    // Serial.print(emgFilt);
+    // Serial.print(", ");
+    // sampleCounter++;
     emg_f_prev = emgFilt;
     emg_u_prev = emgRectify;
+    return emgFilt;
 }
 
 /* meanCalc computes the mean value of the EMG signal during a period of
@@ -75,7 +82,6 @@ void MyoControl::meanCalc(unsigned int meanSamples)
     }
     i = 0;
     emgMean = emgMean/meanSamples;
-    sampleCounter = 0;
     Serial.print("EMG Mean is: ");
     Serial.println(emgMean);
 }
@@ -131,22 +137,22 @@ void MyoControl::calibration() {
 /*
 Prints the raw emg data followed by the filtered emg data in the format
 rawemg1, filteremg1, rawemg2, filteremg2
-*/
-void MyoControl::printSamples() {
-    // delayMicroseconds(50);
-    // Serial.print(emg*adcConv);
-    // Serial.print(", ");
-    if (sampleCounter == 200) {
-        noInterrupts();
-        delayMicroseconds(50);
-        for (uint8_t i = 0; i < 200; i++) {
-            Serial.print(bufferArray[i]);
-            Serial.print(", ");
-        }
-        Serial.println();
-        interrupts();
-    }
-}
+// */
+// void MyoControl::printSamples() {
+//     // delayMicroseconds(50);
+//     // Serial.print(emg*adcConv);
+//     // Serial.print(", ");
+//     if (sampleCounter == 200) {
+//         noInterrupts();
+//         delayMicroseconds(50);
+//         for (uint8_t i = 0; i < 200; i++) {
+//             Serial.print(bufferArray[i]);
+//             Serial.print(", ");
+//         }
+//         Serial.println();
+//         interrupts();
+//     }
+// }
 
 void MyoControl::activation() {
     delayMicroseconds(50);
