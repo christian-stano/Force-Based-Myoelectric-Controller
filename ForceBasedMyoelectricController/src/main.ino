@@ -73,6 +73,10 @@ void loop() {
         }
         double ch1MAV = ch1sum/200;
         double ch2MAV = ch2sum/200;
+        Serial.print("DATA,");
+        Serial.print(ch1MAV);
+        Serial.print(" , ")
+        Serial.println(ch2MAV);
         sampleCounter = 0;
         if (slidingWindow == 150) {
             slidingWindow = 0;
