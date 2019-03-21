@@ -33,14 +33,18 @@ void calibrationSampling() {
 void sample() {
     double emg1 = EMG_Channel1.sampling();
     double emg2 = EMG_Channel2.sampling();
-    processedDataArr[1][sampleCounter+slidingWindow];
-    processedDataArr[2][sampleCounter+slidingWindow];
+    Serial.print("EMG:");
+    Serial.print(emg1);
+    Serial.print(", ");
+    Serial.print(emg2);
+    processedDataArr[1][sampleCounter+slidingWindow] = emg1;
+    processedDataArr[2][sampleCounter+slidingWindow] = emg2;
     sampleCounter++;
 }
 
 void setup() {
     Serial.println("Successful Upload: Starting Program");
-    Serial.begin(9600);
+    Serial.begin(115200);
     //Calibration
     calibrationTimer.begin(calibrationSampling,1000); //samples every 1000 microseconds
     delay(5000);
@@ -73,7 +77,6 @@ void loop() {
         }
         double ch1MAV = ch1sum/200;
         double ch2MAV = ch2sum/200;
-        Serial.print("DATA,");
         Serial.print(ch1MAV);
         Serial.print(" , ");
         Serial.println(ch2MAV);
