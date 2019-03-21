@@ -79,5 +79,6 @@ void loop() {
         } else {
             slidingWindow += 50;
         }
+        interrupts();
     }
 }
