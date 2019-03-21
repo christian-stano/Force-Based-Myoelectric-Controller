@@ -40,7 +40,7 @@ void sample() {
 
 void setup() {
     Serial.println("Successful Upload: Starting Program");
-    Serial.begin(115200);
+    Serial.begin(9600);
     //Calibration
     calibrationTimer.begin(calibrationSampling,1000); //samples every 1000 microseconds
     delay(5000);
@@ -68,14 +68,14 @@ void loop() {
         double ch1sum = 0;
         double ch2sum = 0;
         for (unsigned int i = 0; i < 199; i++) {
-            ch1sum += bufferArray[1][i];
-            ch2sum += bufferArray[2][i];
+            ch1sum += processedDataArr[1][i];
+            ch2sum += processedDataArr[2][i];
         }
         double ch1MAV = ch1sum/200;
         double ch2MAV = ch2sum/200;
         Serial.print("DATA,");
         Serial.print(ch1MAV);
-        Serial.print(" , ")
+        Serial.print(" , ");
         Serial.println(ch2MAV);
         sampleCounter = 0;
         if (slidingWindow == 150) {
