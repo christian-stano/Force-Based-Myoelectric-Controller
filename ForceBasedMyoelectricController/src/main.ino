@@ -33,6 +33,7 @@ void calibrationSampling() {
 void sample() {
     double emg1 = EMG_Channel1.sampling();
     double emg2 = EMG_Channel2.sampling();
+    delayMicroseconds(50);
     Serial.print("EMG:");
     Serial.print(emg1);
     Serial.print(", ");
