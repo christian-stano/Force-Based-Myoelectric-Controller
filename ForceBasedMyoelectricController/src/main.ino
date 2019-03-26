@@ -12,7 +12,8 @@
 int channel1 = A0;
 int channel2 = A1;
 
-double processedDataArr[2][200];
+double processedDataArrCh1[200];
+double processedDataArrCh2[200];
 unsigned int sampleCounter = 0;
 unsigned int slidingWindow = 0;
 
@@ -34,12 +35,9 @@ void sample() {
     double emg1 = EMG_Channel1.sampling();
     double emg2 = EMG_Channel2.sampling();
     delayMicroseconds(50);
-    Serial.print("EMG:");
-    Serial.print(emg1);
-    Serial.print(", ");
-    Serial.print(emg2);
-    processedDataArr[1][sampleCounter+slidingWindow] = emg1;
-    processedDataArr[2][sampleCounter+slidingWindow] = emg2;
+    Serial.println("Sampling");
+    processedDataArrCh1[sampleCounter+slidingWindow] = emg1;
+    processedDataArrCh2[sampleCounter+slidingWindow] = emg2;
     sampleCounter++;
 }
 
@@ -73,8 +71,8 @@ void loop() {
         double ch1sum = 0;
         double ch2sum = 0;
         for (unsigned int i = 0; i < 199; i++) {
-            ch1sum += processedDataArr[1][i];
-            ch2sum += processedDataArr[2][i];
+            ch1sum += processedDataArrCh1[i];
+            ch2sum += processedDataArrCh2[i];
         }
         double ch1MAV = ch1sum/200;
         double ch2MAV = ch2sum/200;
