@@ -12,7 +12,8 @@
 int channel1 = A0;
 int channel2 = A1;
 
-double processedDataArr[2][200];
+double processedDataArrCh1[200];
+double processedDataArrCh2[200];
 unsigned int sampleCounter = 0;
 unsigned int slidingWindow = 0;
 
@@ -33,8 +34,10 @@ void calibrationSampling() {
 void sample() {
     double emg1 = EMG_Channel1.sampling();
     double emg2 = EMG_Channel2.sampling();
-    processedDataArr[1][sampleCounter+slidingWindow];
-    processedDataArr[2][sampleCounter+slidingWindow];
+    delayMicroseconds(50);
+    Serial.println("Sampling");
+    processedDataArrCh1[sampleCounter+slidingWindow] = emg1;
+    processedDataArrCh2[sampleCounter+slidingWindow] = emg2;
     sampleCounter++;
 }
 
@@ -68,14 +71,13 @@ void loop() {
         double ch1sum = 0;
         double ch2sum = 0;
         for (unsigned int i = 0; i < 199; i++) {
-            ch1sum += bufferArray[1][i];
-            ch2sum += bufferArray[2][i];
+            ch1sum += processedDataArrCh1[i];
+            ch2sum += processedDataArrCh2[i];
         }
         double ch1MAV = ch1sum/200;
         double ch2MAV = ch2sum/200;
-        Serial.print("DATA,");
         Serial.print(ch1MAV);
-        Serial.print(" , ")
+        Serial.print(" , ");
         Serial.println(ch2MAV);
         sampleCounter = 0;
         if (slidingWindow == 150) {
