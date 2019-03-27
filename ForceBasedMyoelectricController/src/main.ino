@@ -40,6 +40,12 @@ void functionSampling() {
     sampleCounter++;
 }
 
+int classifier(double emgDifferential) {
+    int y;
+    // y = mx+b;
+    return (int)y;
+}
+
 void setup() {
     delay(2000); //delay 2 seconds to open up window
     Serial.println("Successful Upload: Starting Program");
@@ -74,11 +80,13 @@ void loop() {
         }
         double ch1MAV = ch1sum/200;
         double ch2MAV = ch2sum/200;
+        double emgDifferential = ch1MAV - ch2MAV;
+        //contraction = classifier(emgDifferential);
         Serial.print(ch1MAV);
         Serial.print(" , ");
         Serial.print(ch2MAV);
         Serial.print(" , ");
-        Serial.println(ch1MAV-ch2MAV);
+        Serial.println(emgDifferential);
         sampleCounter = 0;
         if (slidingWindow == 150) {
             slidingWindow = 0;
