@@ -41,6 +41,7 @@ void functionSampling() {
 }
 
 void setup() {
+    delay(2000); //delay 2 seconds to open up window
     Serial.println("Successful Upload: Starting Program");
     Serial.begin(115200);
     //Calibration
@@ -64,9 +65,7 @@ void setup() {
 
 void loop() {
     if (sampleCounter == 49) {
-      noInterrupts();
-      Serial.println("SampleCounter is 49");
-      //  noInterrupts();
+        noInterrupts();
         double ch1sum = 0;
         double ch2sum = 0;
         for (unsigned int i = 0; i < 199; i++) {
@@ -77,7 +76,9 @@ void loop() {
         double ch2MAV = ch2sum/200;
         Serial.print(ch1MAV);
         Serial.print(" , ");
-        Serial.println(ch2MAV);
+        Serial.print(ch2MAV);
+        Serial.print(" , ");
+        Serial.println(ch1MAV-ch2MAV);
         sampleCounter = 0;
         if (slidingWindow == 150) {
             slidingWindow = 0;
