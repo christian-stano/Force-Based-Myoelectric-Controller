@@ -35,8 +35,12 @@ void functionSampling() {
     double emg1 = EMG_Channel1.sampling();
     double emg2 = EMG_Channel2.sampling();
     delayMicroseconds(50);
-    processedDataArrCh1[sampleCounter+slidingWindow] = emg1;
-    processedDataArrCh2[sampleCounter+slidingWindow] = emg2;
+    Serial.print("DATA, TIME,");
+    Serial.print(emg1);
+    Serial.print(" , ");
+    Serial.println(emg2);
+    // processedDataArrCh1[sampleCounter+slidingWindow] = emg1;
+    // processedDataArrCh2[sampleCounter+slidingWindow] = emg2;
     sampleCounter++;
 }
 
@@ -49,7 +53,9 @@ int classifier(double emgDifferential) {
 void setup() {
     delay(2000); //delay 2 seconds to open up window
     Serial.println("Successful Upload: Starting Program");
-    Serial.begin(115200);
+    Serial.begin(14400);
+    Serial.println("LABEL,Time, MuscleA1");
+    Serial.println("RESETTIMER"); //resets timer to 0
     //Calibration
 
     calibrationTimer.begin(calibrationSampling,1000); //samples every 1000 microseconds
@@ -70,29 +76,32 @@ void setup() {
 }
 
 void loop() {
-    if (sampleCounter == 49) {
-        noInterrupts();
-        double ch1sum = 0;
-        double ch2sum = 0;
-        for (unsigned int i = 0; i < 199; i++) {
-            ch1sum += processedDataArrCh1[i];
-            ch2sum += processedDataArrCh2[i];
-        }
-        double ch1MAV = ch1sum/200;
-        double ch2MAV = ch2sum/200;
-        double emgDifferential = ch1MAV - ch2MAV;
-        //contraction = classifier(emgDifferential);
-        Serial.print(ch1MAV);
-        Serial.print(" , ");
-        Serial.print(ch2MAV);
-        Serial.print(" , ");
-        Serial.println(emgDifferential);
-        sampleCounter = 0;
-        if (slidingWindow == 150) {
-            slidingWindow = 0;
-        } else {
-            slidingWindow += 50;
-        }
-        interrupts();
-    }
+    // if (sampleCounter == 49) {
+    //     noInterrupts();
+    //     // double ch1sum = 0;
+    //     // double ch2sum = 0;
+    //     for (unsigned int i = 0; i < 199; i++) {
+    //       Serial.print("DATA, TIME,");
+    //       Serial.println(processedDataArrCh2[i]);
+    //         // ch1sum += processedDataArrCh1[i];
+    //         // ch2sum += processedDataArrCh2[i];
+    //     }
+    //     // double ch1MAV = ch1sum/200;
+    //     // double ch2MAV = ch2sum/200;
+    //     // double emgDifferential = ch1MAV - ch2MAV;
+    //     // //contraction = classifier(emgDifferential);
+    //     // Serial.print("DATA, TIME,");
+    //     // Serial.print(ch1MAV);
+    //     // Serial.print(" , ");
+    //     // Serial.println(ch2MAV);
+    //     // Serial.print(" , ");
+    //     // Serial.println(emgDifferential);
+    //     sampleCounter = 0;
+    //     if (slidingWindow == 150) {
+    //         slidingWindow = 0;
+    //     } else {
+    //         slidingWindow += 50;
+    //     }
+    //     interrupts();
+    // }
 }

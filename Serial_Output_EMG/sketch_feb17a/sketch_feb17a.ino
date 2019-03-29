@@ -23,7 +23,7 @@ void loop() {
     Serial.print(" ");
     Serial.print(",");
     Serial.print(" ");
-    Serial.println(sensorValue2);   //the second variable for plottingincluding line break
+   Serial.println(sensorValue2);   //the second variable for plottingincluding line break
 
     
   delay(10);        // delay in between reads for stability

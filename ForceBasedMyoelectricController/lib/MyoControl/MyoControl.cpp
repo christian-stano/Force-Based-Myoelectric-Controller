@@ -13,7 +13,7 @@ static const unsigned int sampleTime = 1;
 static const double adcRef = 5.00;
 static const unsigned int adcRes = 1023;
 static const double adcConv = adcRef/adcRes; //convert bits to voltage
-static const double fc = 3; //low pass recursive Tustin approximation cutoff frequency
+static const double fc = 1; //low pass recursive Tustin approximation cutoff frequency
 static const double tau = 1/(2*PI*fc);
 static const double alpha1 = (-0.001+2*tau)/(2*tau+0.001);
 static const double alpha2 = 0.001/(2*tau+0.001);
@@ -49,7 +49,8 @@ and adds to buffer
 */
 double MyoControl::sampling() {
     emg = analogRead(emgpin);
-    double emgBaseline = emg*adcConv-emgMean;
+  // double emgBaseline = emg*adcConv-emgMean;
+  double emgBaseline = emg-emgMean;
     double emgRectify = abs(emgBaseline);
     double emgFilt = alpha1*emg_f_prev + alpha2*(emgRectify+emg_u_prev);
     // bufferArray[sampleCounter] = emgFilt;
@@ -76,7 +77,9 @@ void MyoControl::meanCalc(unsigned int meanSamples)
         {
             sampleOk = false;
             i++;
-            emgMean = emgMean + emg*adcConv;
+            // emgMean = emgMean + emg*adcConv;
+            emgMean = emgMean + emg;
+
         }
         interrupts();
     }
