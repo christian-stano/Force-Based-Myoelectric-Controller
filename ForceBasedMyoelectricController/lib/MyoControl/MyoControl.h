@@ -16,19 +16,22 @@ class MyoControl {
         void calibrationSampling();
         double sampling();
         void calibration();
-        void activation();
+        double slopeCalc(int muscle);
+        double interceptCalc(int muscle);
+        // void activation();
         // void printSamples();
     private:
         // void blinkLED(uint8_t ledPin, unsigned int repeat, unsigned int bTime);
         void meanCalc(unsigned int meanSamples);
         // double movAv();
-        // void mvcCalc(unsigned int mvcSamples);
+        void mvcCalc(unsigned int mvcSamples);
         int emgpin;
         volatile unsigned int emg;
         double emgMean;
         double emgAvg;
+        double slope;
         // unsigned int sampleCounter;
-        double emgMvc;
+        double emgMVC;
         bool sampleOk, isActive;
         double emg_u_prev;
         double emg_f_prev;

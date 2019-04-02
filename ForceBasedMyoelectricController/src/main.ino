@@ -16,6 +16,10 @@ double processedDataArrCh1[200];
 double processedDataArrCh2[200];
 volatile unsigned int sampleCounter = 0;
 unsigned int slidingWindow = 0;
+double m_extensor;
+double m_flexor;
+double b_extensor;
+double b_flexor;
 
 MyoControl EMG_Channel1(channel1);
 MyoControl EMG_Channel2(channel2);
@@ -39,19 +43,39 @@ void functionSampling() {
     Serial.print(emg1);
     Serial.print(" , ");
     Serial.println(emg2);
-    // processedDataArrCh1[sampleCounter+slidingWindow] = emg1;
-    // processedDataArrCh2[sampleCounter+slidingWindow] = emg2;
+    processedDataArrCh1[sampleCounter+slidingWindow] = emg1;
+    processedDataArrCh2[sampleCounter+slidingWindow] = emg2;
     sampleCounter++;
 }
 
 int classifier(double emgDifferential) {
     int y;
-    // y = mx+b;
+
+    if (emgDifferential < -3) {
+        y = m_flexor*emgDifferential-b_flexor;
+    } else if (emgDifferential > 3) {
+        y = m_extensor*emgDifferential-b_extensor;
+    } else {
+        y = 30*emgDifferential;
+    }
+
     return (int)y;
 }
 
+int contractionPulseMap(int contraction) {
+    int pulseWidth;
+    if (contraction > 0) { //extensor
+        pulseWidth = -3.75*contraction + 1500;
+    } else if (contraction < 0) { //flexor
+        pulseWidth = -7.50*contraction + 1500;
+    } else {
+        pulseWidth = 1500;
+    }
+    return pulseWidth;
+}
+
 void setup() {
-    delay(2000); //delay 2 seconds to open up window
+    delay(3000); //delay 2 seconds to open up window
     Serial.println("Successful Upload: Starting Program");
     Serial.begin(14400);
     Serial.println("LABEL,Time, MuscleA1");
@@ -69,6 +93,10 @@ void setup() {
     EMG_Channel2.calibration();
     Serial.println("Channel 2 calibrated");
     calibrationTimer.end(); //Stops sampling of calibration period
+    m_extensor = EMG_Channel1.slopeCalc(1); //1 indicates positive 90 used as mvcCalc
+    m_flexor = EMG_Channel2.slopeCalc(-1);
+    b_extensor = EMG_Channel1.interceptCalc(1);
+    b_flexor = EMG_Channel2.interceptCalc(-1);
     //Function
     Serial.println("Calibration complete: begin function in 5 seconds");
     delay(5000);
@@ -76,32 +104,27 @@ void setup() {
 }
 
 void loop() {
-    // if (sampleCounter == 49) {
-    //     noInterrupts();
-    //     // double ch1sum = 0;
-    //     // double ch2sum = 0;
-    //     for (unsigned int i = 0; i < 199; i++) {
-    //       Serial.print("DATA, TIME,");
-    //       Serial.println(processedDataArrCh2[i]);
-    //         // ch1sum += processedDataArrCh1[i];
-    //         // ch2sum += processedDataArrCh2[i];
-    //     }
-    //     // double ch1MAV = ch1sum/200;
-    //     // double ch2MAV = ch2sum/200;
-    //     // double emgDifferential = ch1MAV - ch2MAV;
-    //     // //contraction = classifier(emgDifferential);
-    //     // Serial.print("DATA, TIME,");
-    //     // Serial.print(ch1MAV);
-    //     // Serial.print(" , ");
-    //     // Serial.println(ch2MAV);
-    //     // Serial.print(" , ");
-    //     // Serial.println(emgDifferential);
-    //     sampleCounter = 0;
-    //     if (slidingWindow == 150) {
-    //         slidingWindow = 0;
-    //     } else {
-    //         slidingWindow += 50;
-    //     }
-    //     interrupts();
-    // }
+    if (sampleCounter == 49) {
+        noInterrupts();
+        double ch1sum = 0;
+        double ch2sum = 0;
+        for (unsigned int i = 0; i < 199; i++) {
+          Serial.print("DATA, TIME,");
+          Serial.println(processedDataArrCh2[i]);
+            ch1sum += processedDataArrCh1[i];
+            ch2sum += processedDataArrCh2[i];
+        }
+        double ch1MAV = ch1sum/200;
+        double ch2MAV = ch2sum/200;
+        double emgDifferential = ch1MAV - ch2MAV;
+        int contraction = classifier(emgDifferential);
+        int pulseWidth = contractionPulseMap(contraction);
+        sampleCounter = 0;
+        if (slidingWindow == 150) {
+            slidingWindow = 0;
+        } else {
+            slidingWindow += 50;
+        }
+        interrupts();
+    }
 }

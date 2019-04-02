@@ -45,12 +45,12 @@ void MyoControl::calibrationSampling() {
 }
 
 /* Samples ADC every 1 ms, performs baseline rectification, Tunstin approximation,
-and adds to buffer
+and returns to main.ino
 */
 double MyoControl::sampling() {
     emg = analogRead(emgpin);
   // double emgBaseline = emg*adcConv-emgMean;
-  double emgBaseline = emg-emgMean;
+    double emgBaseline = emg-emgMean;
     double emgRectify = abs(emgBaseline);
     double emgFilt = alpha1*emg_f_prev + alpha2*(emgRectify+emg_u_prev);
     // bufferArray[sampleCounter] = emgFilt;
@@ -89,35 +89,41 @@ void MyoControl::meanCalc(unsigned int meanSamples)
     Serial.println(emgMean);
 }
 
-/* movAv computes the running moving average of the EMG signal. First, the
-baseline of the signal is lowered to 0 V, to be able to rectify it. The running
-moving average rectifies and smooths the signal (acts as a low pass filter),
-returning the amplitude of the signal. */
-// double MyoControl::movAv() {
-//     double emgZero = 0.00, emgMovav = 0.00;
-//     emgZero = emg*adcConv - emgMean; // Signal with 0 V baseline
-//     emgMovav = emgMovav*0.99 + abs(emgZero)*0.01; // Rectified and smoothed signal
-//     interrupts();
-//     return emgMovav;
-// }
-
 /* mvcCalc computes the maximum voluntary contraction, the maximum force the
 user is able to exert. This value is used to compute the activation threshold */
-// void MyoControl::mvcCalc(unsigned int mvcSamples) {
-//     double emgMovav = 0.00;
-//     unsigned int i = 0;
-//     while(i < mvcSamples) {
-//         delayMicroseconds(50);
-//         if(sampleOk) {
-//             sampleOk = false;
-//             i++;
-//             emgMovav = movAv();
-//             if(emgMovav > emgMvc) {
-//                 emgMvc = emgMovav;
-//             }
-//         }
-//     }
-// }
+void MyoControl::mvcCalc(unsigned int mvcSamples) {
+    unsigned int i = 0;
+    while(i < mvcSamples) {
+        delayMicroseconds(50);
+        if(sampleOk) {
+            sampleOk = false;
+            i++;
+            double emgBaseline = emg-emgMean;
+            double emgRectify = abs(emgBaseline);
+            double emgFilt = alpha1*emg_f_prev + alpha2*(emgRectify+emg_u_prev);
+            emgMVC = emgMVC + emgFilt;
+            emg_f_prev = emgFilt;
+            emg_u_prev = emgRectify;
+        }
+        interrupts();
+    }
+    emgMVC = emgMVC/mvcSamples;
+    emg_f_prev = 0;
+    emg_u_prev = 0;
+    Serial.print("EMG MVC is: ");
+    Serial.println(emgMVC);
+}
+
+double MyoControl::slopeCalc(int muscle) {
+    slope = (muscle*90-75)/(emgMVC-(muscle*3));
+    return slope;
+}
+
+double MyoControl::interceptCalc(int muscle) {
+    double intercept;
+    intercept = muscle*90-slope*emgMVC;
+    return intercept;
+}
 
 void MyoControl::calibration() {
     /* System calibration */
@@ -130,9 +136,9 @@ void MyoControl::calibration() {
     delay(1000);
     /* Calibration step #2: calculate the maximum voluntary contraction during 5 s*/
     // blinkLED(13,2,500); // LED blinks twice to indicate calibration step #2 start
-    // Serial.println("Calibration: perform MVC for 5 seconds");
-    // mvcCalc(5000);
-    // Serial.println("MVC calibration complete");
+    Serial.println("Calibration: perform MVC for 5 seconds");
+    mvcCalc(5000);
+    Serial.println("MVC calibration complete");
     // blinkLED(13,2,500); // LED bliks twice to indicate calibration step #2 end
     delay(1000);
 }
@@ -157,21 +163,21 @@ rawemg1, filteremg1, rawemg2, filteremg2
 //     }
 // }
 
-void MyoControl::activation() {
-    delayMicroseconds(50);
-    if(sampleOk) {
-        sampleOk = false;
-        // double emgMovav = movAv(); // Gets the amplitude of the measured EMG signal
-        /* If the amplitude of the EMG signal is greater than the activation threshold
-        (a 35% of the MVC), there is a muscle activation. */
-        // if(emgMovav > 0.35*emgMvc) {
-            // isActive = true;
-        // }
-        // /* If the amplitude of the EMG signal is below the activation threshold,
-        // there is no muscle activation. */
-        // else {
-        //     isActive = false;
-        // }
-    }
-    // return isActive;
-}
+// void MyoControl::activation() {
+//     delayMicroseconds(50);
+//     if(sampleOk) {
+//         sampleOk = false;
+//         // double emgMovav = movAv(); // Gets the amplitude of the measured EMG signal
+//         /* If the amplitude of the EMG signal is greater than the activation threshold
+//         (a 35% of the MVC), there is a muscle activation. */
+//         // if(emgMovav > 0.35*emgMvc) {
+//             // isActive = true;
+//         // }
+//         // /* If the amplitude of the EMG signal is below the activation threshold,
+//         // there is no muscle activation. */
+//         // else {
+//         //     isActive = false;
+//         // }
+//     }
+//     // return isActive;
+// }
