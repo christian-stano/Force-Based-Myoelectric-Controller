@@ -119,6 +119,9 @@ void loop() {
         double emgDifferential = ch1MAV - ch2MAV;
         int contraction = classifier(emgDifferential);
         int pulseWidth = contractionPulseMap(contraction);
+        /*
+        Implement Servo Movement Here
+        */
         sampleCounter = 0;
         if (slidingWindow == 150) {
             slidingWindow = 0;
