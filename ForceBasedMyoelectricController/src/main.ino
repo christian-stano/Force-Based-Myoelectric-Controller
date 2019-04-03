@@ -9,7 +9,7 @@
 #include <Arduino.h>
 #include <IntervalTimer.h>
 #include <Servo.h>
-//#include <PID_v1.h>
+#include <PID_v1.h>
 
 // Initialize relevant servo elements
 int servoPin = A2;//Teensy pin communicating with Servo
@@ -17,9 +17,9 @@ Servo Servo1; // create servo object for arduino library implementation
 
 //Initialize Relevant PID elements
 //double setpoint= 1500;
-//double pulseWidthPID;
+//double pulseWidthPID,pulseWidth;
   // PID object definition in the form (input, output, set point, Proportional coefficient, Integral Coefficient, Differential Coefficient)
-//PID myPID(&pulseWidth, &pulseWidthPID, &setpoint, 0.5, 1, 20, DIRECT);
+//PID myPID(&pulseWidth, &pulseWidthPID, &setpoint, 1, 1, 20, DIRECT);
 
 int channel1 = A0;
 int channel2 = A1;
@@ -85,7 +85,7 @@ int contractionPulseMap(int contraction) {
 
 void setup() {
     Servo1.attach(servoPin); // attach servo to pin prior to use in code
-    //myPID.SETMODE(AUTOMATIC); // Activate PID under automatic operation
+  //  myPID.SetMode(AUTOMATIC); // Activate PID under automatic operation
 
     delay(8000); //delay 2 seconds to open up window
     Serial.println("Successful Upload: Starting Program");
@@ -141,8 +141,15 @@ void loop() {
         }
 
         //Implement PID Considerations
-      //  myPID.Compute();
-        //Servo1.writeMicroseconds(pulseWidth);
+
+              //if (contract < 2 %% contract > -2){
+                //change_contract = -prev_contraction ;
+                // pulseWidth = contractionPulseMap (change_contract);
+            //} else {
+              // myPID.Compute();
+              // Servo1.writeMicroseconds(pulseWidthPID);
+            //  }
+            //  int prev_contraction = contraction;
 
         sampleCounter = 0;
         if (slidingWindow == 150) {
