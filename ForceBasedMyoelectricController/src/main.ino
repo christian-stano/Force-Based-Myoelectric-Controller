@@ -9,9 +9,17 @@
 #include <Arduino.h>
 #include <IntervalTimer.h>
 #include <Servo.h>
+//#include <PID_v1.h>
 
-int ServoPin = A2;
-Servo Servo1;
+// Initialize relevant servo elements
+int servoPin = A2;//Teensy pin communicating with Servo
+Servo Servo1; // create servo object for arduino library implementation
+
+//Initialize Relevant PID elements
+//double setpoint= 1500;
+//double pulseWidthPID;
+  // PID object definition in the form (input, output, set point, Proportional coefficient, Integral Coefficient, Differential Coefficient)
+//PID myPID(&pulseWidth, &pulseWidthPID, &setpoint, 0.5, 1, 20, DIRECT);
 
 int channel1 = A0;
 int channel2 = A1;
@@ -24,6 +32,7 @@ double m_extensor;
 double m_flexor;
 double b_extensor;
 double b_flexor;
+int contractionPrev = 0;
 
 MyoControl EMG_Channel1(channel1);
 MyoControl EMG_Channel2(channel2);
@@ -43,10 +52,6 @@ void functionSampling() {
     double emg1 = EMG_Channel1.sampling();
     double emg2 = EMG_Channel2.sampling();
     delayMicroseconds(50);
-    Serial.print("DATA, TIME,");
-    Serial.print(emg1);
-    Serial.print(" , ");
-    Serial.println(emg2);
     processedDataArrCh1[sampleCounter+slidingWindow] = emg1;
     processedDataArrCh2[sampleCounter+slidingWindow] = emg2;
     sampleCounter++;
@@ -79,12 +84,14 @@ int contractionPulseMap(int contraction) {
 }
 
 void setup() {
-    Servo1.attach(servoPin);
-    delay(3000); //delay 2 seconds to open up window
+    Servo1.attach(servoPin); // attach servo to pin prior to use in code
+    //myPID.SETMODE(AUTOMATIC); // Activate PID under automatic operation
+
+    delay(8000); //delay 2 seconds to open up window
     Serial.println("Successful Upload: Starting Program");
     Serial.begin(14400);
-    Serial.println("LABEL,Time, MuscleA1");
-    Serial.println("RESETTIMER"); //resets timer to 0
+    // Serial.println("LABEL,Time, MuscleA1");
+    // Serial.println("RESETTIMER"); //resets timer to 0
     //Calibration
 
     calibrationTimer.begin(calibrationSampling,1000); //samples every 1000 microseconds
@@ -114,8 +121,8 @@ void loop() {
         double ch1sum = 0;
         double ch2sum = 0;
         for (unsigned int i = 0; i < 199; i++) {
-          Serial.print("DATA, TIME,");
-          Serial.println(processedDataArrCh2[i]);
+          // Serial.print("DATA, TIME,");
+          // Serial.println(processedDataArrCh2[i]);
             ch1sum += processedDataArrCh1[i];
             ch2sum += processedDataArrCh2[i];
         }
@@ -123,9 +130,20 @@ void loop() {
         double ch2MAV = ch2sum/200;
         double emgDifferential = ch1MAV - ch2MAV;
         int contraction = classifier(emgDifferential);
+        Serial.println(contraction);
         int pulseWidth = contractionPulseMap(contraction);
+        int threshold = abs(contraction - contractionPrev);
         //Implemented Servo output Here
-        Servo1.writeMicroseconds(pulseWidth)
+        if (pulseWidth < 2250 && pulseWidth > 750) {
+          if (threshold > 5) {
+            Servo1.writeMicroseconds(pulseWidth);
+          }
+        }
+
+        //Implement PID Considerations
+      //  myPID.Compute();
+        //Servo1.writeMicroseconds(pulseWidth);
+
         sampleCounter = 0;
         if (slidingWindow == 150) {
             slidingWindow = 0;

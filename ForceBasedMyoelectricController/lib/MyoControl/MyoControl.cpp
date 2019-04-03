@@ -115,13 +115,13 @@ void MyoControl::mvcCalc(unsigned int mvcSamples) {
 }
 
 double MyoControl::slopeCalc(int muscle) {
-    slope = (muscle*90-75)/(emgMVC-(muscle*3));
+    slope = (muscle*90-muscle*75)/(muscle*emgMVC-(muscle*3));
     return slope;
 }
 
 double MyoControl::interceptCalc(int muscle) {
     double intercept;
-    intercept = muscle*90-slope*emgMVC;
+    intercept = muscle*75-slope*muscle*3;
     return intercept;
 }
 
@@ -137,6 +137,7 @@ void MyoControl::calibration() {
     /* Calibration step #2: calculate the maximum voluntary contraction during 5 s*/
     // blinkLED(13,2,500); // LED blinks twice to indicate calibration step #2 start
     Serial.println("Calibration: perform MVC for 5 seconds");
+    delay(1000);
     mvcCalc(5000);
     Serial.println("MVC calibration complete");
     // blinkLED(13,2,500); // LED bliks twice to indicate calibration step #2 end
