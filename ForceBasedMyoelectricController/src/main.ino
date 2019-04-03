@@ -8,6 +8,10 @@
 #include <MyoControl.h>
 #include <Arduino.h>
 #include <IntervalTimer.h>
+#include <Servo.h>
+
+int ServoPin = A2;
+Servo Servo1;
 
 int channel1 = A0;
 int channel2 = A1;
@@ -75,6 +79,7 @@ int contractionPulseMap(int contraction) {
 }
 
 void setup() {
+    Servo1.attach(servoPin);
     delay(3000); //delay 2 seconds to open up window
     Serial.println("Successful Upload: Starting Program");
     Serial.begin(14400);
@@ -119,9 +124,8 @@ void loop() {
         double emgDifferential = ch1MAV - ch2MAV;
         int contraction = classifier(emgDifferential);
         int pulseWidth = contractionPulseMap(contraction);
-        /*
-        Implement Servo Movement Here
-        */
+        //Implemented Servo output Here
+        Servo1.writeMicroseconds(pulseWidth)
         sampleCounter = 0;
         if (slidingWindow == 150) {
             slidingWindow = 0;
