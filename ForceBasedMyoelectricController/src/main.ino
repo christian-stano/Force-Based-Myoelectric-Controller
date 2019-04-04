@@ -142,7 +142,7 @@ void loop() {
 
         //Implement PID Considerations
 
-              //if (contract < 2 %% contract > -2){
+              //if (contract < 2 && contract > -2){
                 //change_contract = -prev_contraction ;
                 // pulseWidth = contractionPulseMap (change_contract);
             //} else {
