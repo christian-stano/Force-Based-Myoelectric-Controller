@@ -121,8 +121,6 @@ void loop() {
         double ch1sum = 0;
         double ch2sum = 0;
         for (unsigned int i = 0; i < 199; i++) {
-          // Serial.print("DATA, TIME,");
-          // Serial.println(processedDataArrCh2[i]);
             ch1sum += processedDataArrCh1[i];
             ch2sum += processedDataArrCh2[i];
         }
@@ -130,15 +128,21 @@ void loop() {
         double ch2MAV = ch2sum/200;
         double emgDifferential = ch1MAV - ch2MAV;
         int contraction = classifier(emgDifferential);
-        Serial.println(contraction);
         int pulseWidth = contractionPulseMap(contraction);
         int threshold = abs(contraction - contractionPrev);
-        //Implemented Servo output Here
+
         if (pulseWidth < 2250 && pulseWidth > 750) {
-          if (threshold > 5) {
-            Servo1.writeMicroseconds(pulseWidth);
-          }
+            if (contraction > 75 || contraction < -75) {
+                if (threshold > 10) {
+                    Servo1.writeMicroseconds(pulseWidth);
+                }
+            } else {
+                if (threshold > 5) {
+                    Servo1.writeMicroseconds(pulseWidth);
+                }
+            }
         }
+        
 
         //Implement PID Considerations
 

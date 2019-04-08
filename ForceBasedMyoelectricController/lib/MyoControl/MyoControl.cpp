@@ -22,20 +22,7 @@ MyoControl::MyoControl(int emg_pin) {
     emgpin = emg_pin;
     emg_u_prev = 0;
     emg_f_prev = 0;
-    // sampleCounter = 0;
 }
-
-// /* blinkLED blinks a led "repeat" times with a "bTime" interval between on and off */
-// void MyoControl::blinkLED(uint8_t ledPin, unsigned int repeat, unsigned int bTime) {
-//     pinMode(ledPin, OUTPUT);
-//     unsigned int i;
-//     for(i=0;i<repeat;i++) {
-//         digitalWrite(ledPin,HIGH);
-//         delay(bTime);
-//         digitalWrite(ledPin,LOW);
-//         delay(bTime);
-//     }
-// }
 
 /* sampling reads the ADC every 1 ms with the intervaltimer interrupt. */
 void MyoControl::calibrationSampling() {
@@ -77,7 +64,6 @@ void MyoControl::meanCalc(unsigned int meanSamples)
         {
             sampleOk = false;
             i++;
-            // emgMean = emgMean + emg*adcConv;
             emgMean = emgMean + emg;
 
         }
@@ -143,42 +129,3 @@ void MyoControl::calibration() {
     // blinkLED(13,2,500); // LED bliks twice to indicate calibration step #2 end
     delay(1000);
 }
-
-/*
-Prints the raw emg data followed by the filtered emg data in the format
-rawemg1, filteremg1, rawemg2, filteremg2
-// */
-// void MyoControl::printSamples() {
-//     // delayMicroseconds(50);
-//     // Serial.print(emg*adcConv);
-//     // Serial.print(", ");
-//     if (sampleCounter == 200) {
-//         noInterrupts();
-//         delayMicroseconds(50);
-//         for (uint8_t i = 0; i < 200; i++) {
-//             Serial.print(bufferArray[i]);
-//             Serial.print(", ");
-//         }
-//         Serial.println();
-//         interrupts();
-//     }
-// }
-
-// void MyoControl::activation() {
-//     delayMicroseconds(50);
-//     if(sampleOk) {
-//         sampleOk = false;
-//         // double emgMovav = movAv(); // Gets the amplitude of the measured EMG signal
-//         /* If the amplitude of the EMG signal is greater than the activation threshold
-//         (a 35% of the MVC), there is a muscle activation. */
-//         // if(emgMovav > 0.35*emgMvc) {
-//             // isActive = true;
-//         // }
-//         // /* If the amplitude of the EMG signal is below the activation threshold,
-//         // there is no muscle activation. */
-//         // else {
-//         //     isActive = false;
-//         // }
-//     }
-//     // return isActive;
-// }
