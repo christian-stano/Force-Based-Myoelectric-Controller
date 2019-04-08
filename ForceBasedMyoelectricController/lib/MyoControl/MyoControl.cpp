@@ -77,30 +77,30 @@ void MyoControl::meanCalc(unsigned int meanSamples)
 
 /* mvcCalc computes the maximum voluntary contraction, the maximum force the
 user is able to exert. This value is used to compute the activation threshold */
-void MyoControl::mvcCalc(unsigned int mvcSamples) {
-    unsigned int i = 0;
-    while(i < mvcSamples) {
-        delayMicroseconds(50);
-        if(sampleOk) {
-            sampleOk = false;
-            i++;
-            double emgBaseline = emg-emgMean;
-            double emgRectify = abs(emgBaseline);
-            double emgFilt = alpha1*emg_f_prev + alpha2*(emgRectify+emg_u_prev);
-            emgMVC = emgMVC + emgFilt;
-            emg_f_prev = emgFilt;
-            emg_u_prev = emgRectify;
-        }
-        interrupts();
-    }
-    emgMVC = emgMVC/mvcSamples;
-    emg_f_prev = 0;
-    emg_u_prev = 0;
-    Serial.print("EMG MVC is: ");
-    Serial.println(emgMVC);
-}
+// void MyoControl::mvcCalc(unsigned int mvcSamples) {
+//     unsigned int i = 0;
+//     while(i < mvcSamples) {
+//         delayMicroseconds(50);
+//         if(sampleOk) {
+//             sampleOk = false;
+//             i++;
+//             double emgBaseline = emg-emgMean;
+//             double emgRectify = abs(emgBaseline);
+//             double emgFilt = alpha1*emg_f_prev + alpha2*(emgRectify+emg_u_prev);
+//             emgMVC = emgMVC + emgFilt;
+//             emg_f_prev = emgFilt;
+//             emg_u_prev = emgRectify;
+//         }
+//         interrupts();
+//     }
+//     emgMVC = emgMVC/mvcSamples;
+//     emg_f_prev = 0;
+//     emg_u_prev = 0;
+//     Serial.print("EMG MVC is: ");
+//     Serial.println(emgMVC);
+// }
 
-double MyoControl::slopeCalc(int muscle) {
+double MyoControl::slopeCalc(int muscle, double emgMVC) {
     slope = (muscle*90-muscle*75)/(muscle*emgMVC-(muscle*3));
     return slope;
 }
@@ -122,10 +122,10 @@ void MyoControl::calibration() {
     delay(1000);
     /* Calibration step #2: calculate the maximum voluntary contraction during 5 s*/
     // blinkLED(13,2,500); // LED blinks twice to indicate calibration step #2 start
-    Serial.println("Calibration: perform MVC for 5 seconds");
-    delay(1000);
-    mvcCalc(5000);
-    Serial.println("MVC calibration complete");
-    // blinkLED(13,2,500); // LED bliks twice to indicate calibration step #2 end
-    delay(1000);
+    // Serial.println("Calibration: perform MVC for 5 seconds");
+    // delay(1000);
+    // mvcCalc(5000);
+    // Serial.println("MVC calibration complete");
+    // // blinkLED(13,2,500); // LED bliks twice to indicate calibration step #2 end
+    // delay(1000);
 }

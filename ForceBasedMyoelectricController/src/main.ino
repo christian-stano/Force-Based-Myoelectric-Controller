@@ -42,6 +42,7 @@ sampling frequency of 1000 Hz
 */
 IntervalTimer calibrationTimer;
 IntervalTimer initialTimer;
+IntervalTimer MVCTimer;
 
 void calibrationSampling() {
     EMG_Channel1.calibrationSampling();
@@ -83,16 +84,49 @@ int contractionPulseMap(int contraction) {
     return pulseWidth;
 }
 
+double MVCCalibration(unsigned int mvcSamples) {
+    unsigned int i = 0;
+    double emgMVC = 0;
+    while (i < mvcSamples) {
+        delayMicroseconds(50);
+        if (sampleCounter == 49) {
+            noInterrupts();
+            double ch1sum = 0;
+            double ch2sum = 0;
+            for (unsigned int i = 0; i < 199; i++) {
+                ch1sum += processedDataArrCh1[i];
+                ch2sum += processedDataArrCh2[i];
+            }
+            double ch1MAV = ch1sum/200;
+            double ch2MAV = ch2sum/200;
+            double emgDifferential = ch1MAV - ch2MAV;
+            emgMVC = emgMVC + emgDifferential;
+            sampleCounter = 0;
+            if (slidingWindow == 150) {
+                slidingWindow = 0;
+            } else {
+                slidingWindow += 50;
+            }
+            i++;
+            interrupts();
+        }
+    }
+    emgMVC = emgMVC/mvcSamples;
+    Serial.print("EMG MVC is: ");
+    Serial.println(emgMVC);
+    return emgMVC;
+}
+
 void setup() {
     Servo1.attach(servoPin); // attach servo to pin prior to use in code
   //  myPID.SetMode(AUTOMATIC); // Activate PID under automatic operation
 
-    delay(8000); //delay 2 seconds to open up window
+    delay(8000); //delay 8 seconds to open up window
     Serial.println("Successful Upload: Starting Program");
     Serial.begin(14400);
     // Serial.println("LABEL,Time, MuscleA1");
     // Serial.println("RESETTIMER"); //resets timer to 0
-    //Calibration
+    // Calibration
 
     calibrationTimer.begin(calibrationSampling,1000); //samples every 1000 microseconds
     delay(5000);
@@ -105,14 +139,32 @@ void setup() {
     EMG_Channel2.calibration();
     Serial.println("Channel 2 calibrated");
     calibrationTimer.end(); //Stops sampling of calibration period
-    m_extensor = EMG_Channel1.slopeCalc(1); //1 indicates positive 90 used as mvcCalc
-    m_flexor = EMG_Channel2.slopeCalc(-1);
+
+    //Classifier Calibration via mvcCalc
+    Serial.println("Begin MVC Calibration for Classifier");
+    Serial.println("Perform MVC of extensor for 5 seconds");
+    initialTimer.begin(functionSampling,1000);
+    delay(1000);
+    double extensorMVC = MVCCalibration(100);
+    noInterrupts();
+    Serial.println("Extensor MVC calibration complete");
+    delay(1000);
+    Serial.println("Perform MVC of flexor for 5 seconds");
+    delay(1000);
+    interrupts();
+    double flexorMVC = MVCCalibration(100);
+    noInterrupts();
+    Serial.println("Flexor MVC calibration complete");
+
+    m_extensor = EMG_Channel1.slopeCalc(1,extensorMVC); //1 indicates positive 90 used as mvcCalc
+    m_flexor = EMG_Channel2.slopeCalc(-1,flexorMVC);
     b_extensor = EMG_Channel1.interceptCalc(1);
     b_flexor = EMG_Channel2.interceptCalc(-1);
     //Function
     Serial.println("Calibration complete: begin function in 5 seconds");
     delay(5000);
-    initialTimer.begin(functionSampling,1000);
+    interrupts();
+    // initialTimer.begin(functionSampling,1000);
 }
 
 void loop() {
