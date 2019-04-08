@@ -142,7 +142,6 @@ void loop() {
                 }
             }
         }
-        
 
         //Implement PID Considerations
 
