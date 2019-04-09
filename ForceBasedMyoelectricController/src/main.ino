@@ -124,8 +124,9 @@ void setup() {
     delay(8000); //delay 8 seconds to open up window
     Serial.println("Successful Upload: Starting Program");
     Serial.begin(14400);
-    // Serial.println("LABEL,Time, MuscleA1");
-    // Serial.println("RESETTIMER"); //resets timer to 0
+
+    Serial.println("LABEL,Time, MuscleA1");
+    Serial.println("RESETTIMER"); //resets timer to 0
     // Calibration
 
     calibrationTimer.begin(calibrationSampling,1000); //samples every 1000 microseconds
@@ -183,6 +184,17 @@ void loop() {
         int pulseWidth = contractionPulseMap(contraction);
         int threshold = abs(contraction - contractionPrev);
 
+        //Implement PID Considerations
+
+              //if (contract < 2 && contract > -2){
+                //change_contract = -prev_contraction ;
+                // pulseWidth = contractionPulseMap (change_contract);
+            //} else {
+              // myPID.Compute();
+              // Servo1.writeMicroseconds(pulseWidthPID);
+            //  }
+            //  int prev_contraction = contraction;
+
         if (pulseWidth < 2250 && pulseWidth > 750) {
             if (contraction > 75 || contraction < -75) {
                 if (threshold > 10) {
@@ -195,16 +207,11 @@ void loop() {
             }
         }
 
-        //Implement PID Considerations
-
-              //if (contract < 2 && contract > -2){
-                //change_contract = -prev_contraction ;
-                // pulseWidth = contractionPulseMap (change_contract);
-            //} else {
-              // myPID.Compute();
-              // Servo1.writeMicroseconds(pulseWidthPID);
-            //  }
-            //  int prev_contraction = contraction;
+        Serial.print("DATA, ");
+        Serial.print(emgDifferential);
+        Serial.print(contraction);
+        Serial.print(pulsewidth);
+        Serial.println(pulsewidthPID);
 
         sampleCounter = 0;
         if (slidingWindow == 150) {
