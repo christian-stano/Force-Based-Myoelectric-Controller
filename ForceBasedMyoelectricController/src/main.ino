@@ -15,11 +15,13 @@
 int servoPin = A2;//Teensy pin communicating with Servo
 Servo Servo1; // create servo object for arduino library implementation
 
-//Initialize Relevant PID elements
-//double setpoint= 1500;
-//double pulseWidthPID,pulseWidth;
+// Initialize Relevant PID elements
+// double setpoint= 1500;
+// double setpoint, pulseWidthPID, pulseWidth;
+double setpoint, pulseWidthPID, pulseWidth;
+
   // PID object definition in the form (input, output, set point, Proportional coefficient, Integral Coefficient, Differential Coefficient)
-//PID myPID(&pulseWidth, &pulseWidthPID, &setpoint, 1, 1, 20, DIRECT);
+PID myPID(&pulseWidth, &pulseWidthPID, &setpoint, 0.5, 1, 10, DIRECT);
 
 int channel1 = A0;
 int channel2 = A1;
@@ -62,9 +64,9 @@ int classifier(double emgDifferential) {
     int y;
 
     if (emgDifferential < -3) {
-        y = m_flexor*emgDifferential-b_flexor;
+        y = m_flexor*emgDifferential+b_flexor;
     } else if (emgDifferential > 3) {
-        y = m_extensor*emgDifferential-b_extensor;
+        y = m_extensor*emgDifferential+b_extensor;
     } else {
         y = 30*emgDifferential;
     }
@@ -72,8 +74,8 @@ int classifier(double emgDifferential) {
     return (int)y;
 }
 
-int contractionPulseMap(int contraction) {
-    int pulseWidth;
+double contractionPulseMap(int contraction) {
+    // double pulseWidth;
     if (contraction > 0) { //extensor
         pulseWidth = -3.75*contraction + 1500;
     } else if (contraction < 0) { //flexor
@@ -84,11 +86,10 @@ int contractionPulseMap(int contraction) {
     return pulseWidth;
 }
 
-double MVCCalibration(unsigned int mvcSamples) {
-    unsigned int i = 0;
+double MVCCalibration(int mvcSamples) {
+    int i = 0;
     double emgMVC = 0;
     while (i < mvcSamples) {
-        delayMicroseconds(50);
         if (sampleCounter == 49) {
             noInterrupts();
             double ch1sum = 0;
@@ -119,18 +120,19 @@ double MVCCalibration(unsigned int mvcSamples) {
 
 void setup() {
     Servo1.attach(servoPin); // attach servo to pin prior to use in code
-  //  myPID.SetMode(AUTOMATIC); // Activate PID under automatic operation
+    setpoint = 1500;
+    myPID.SetMode(AUTOMATIC); // Activate PID under automatic operation
 
-    delay(8000); //delay 8 seconds to open up window
+    delay(5000); //delay 8 seconds to open up window
     Serial.println("Successful Upload: Starting Program");
     Serial.begin(14400);
 
-    Serial.println("LABEL,Time, MuscleA1");
-    Serial.println("RESETTIMER"); //resets timer to 0
+    Serial.println("LABEL,Time, MuscleA1, label2, label3");
+    Serial.println("RESETTIMER");
     // Calibration
 
     calibrationTimer.begin(calibrationSampling,1000); //samples every 1000 microseconds
-    delay(5000);
+    delay(3000);
     Serial.println("Calibrating channel 1:");
     delay(1000);
     EMG_Channel1.calibration();
@@ -145,15 +147,12 @@ void setup() {
     Serial.println("Begin MVC Calibration for Classifier");
     Serial.println("Perform MVC of extensor for 5 seconds");
     initialTimer.begin(functionSampling,1000);
-    delay(1000);
-    double extensorMVC = MVCCalibration(100);
+    double extensorMVC = MVCCalibration(140);
     noInterrupts();
     Serial.println("Extensor MVC calibration complete");
-    delay(1000);
     Serial.println("Perform MVC of flexor for 5 seconds");
-    delay(1000);
     interrupts();
-    double flexorMVC = MVCCalibration(100);
+    double flexorMVC = MVCCalibration(140);
     noInterrupts();
     Serial.println("Flexor MVC calibration complete");
 
@@ -163,7 +162,6 @@ void setup() {
     b_flexor = EMG_Channel2.interceptCalc(-1);
     //Function
     Serial.println("Calibration complete: begin function in 5 seconds");
-    delay(5000);
     interrupts();
     // initialTimer.begin(functionSampling,1000);
 }
@@ -181,7 +179,7 @@ void loop() {
         double ch2MAV = ch2sum/200;
         double emgDifferential = ch1MAV - ch2MAV;
         int contraction = classifier(emgDifferential);
-        int pulseWidth = contractionPulseMap(contraction);
+        pulseWidth = contractionPulseMap(contraction);
         int threshold = abs(contraction - contractionPrev);
 
         //Implement PID Considerations
@@ -190,7 +188,7 @@ void loop() {
                 //change_contract = -prev_contraction ;
                 // pulseWidth = contractionPulseMap (change_contract);
             //} else {
-              // myPID.Compute();
+              myPID.Compute();
               // Servo1.writeMicroseconds(pulseWidthPID);
             //  }
             //  int prev_contraction = contraction;
@@ -207,11 +205,14 @@ void loop() {
             }
         }
 
-        Serial.print("DATA, ");
+        Serial.print("DATA, TIME, ");
         Serial.print(emgDifferential);
+        Serial.print(" , ");
         Serial.print(contraction);
-        Serial.print(pulsewidth);
-        Serial.println(pulsewidthPID);
+        Serial.print(" , ");
+        // Serial.print(pulseWidth);
+        Serial.print(" , ");
+        Serial.println(pulseWidthPID);
 
         sampleCounter = 0;
         if (slidingWindow == 150) {

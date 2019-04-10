@@ -101,7 +101,7 @@ user is able to exert. This value is used to compute the activation threshold */
 // }
 
 double MyoControl::slopeCalc(int muscle, double emgMVC) {
-    slope = (muscle*90-muscle*75)/(muscle*emgMVC-(muscle*3));
+    slope = (muscle*90-muscle*75)/(emgMVC-(muscle*3));
     return slope;
 }
 
