@@ -21,7 +21,7 @@ Servo Servo1; // create servo object for arduino library implementation
 double setpoint, pulseWidthPID, pulseWidth;
 
   // PID object definition in the form (input, output, set point, Proportional coefficient, Integral Coefficient, Differential Coefficient)
-PID myPID(&pulseWidth, &pulseWidthPID, &setpoint, 0.5, 1, 10, DIRECT);
+// PID myPID(&pulseWidth, &pulseWidthPID, &setpoint, 0.5, 1, 10, DIRECT);
 
 int channel1 = A0;
 int channel2 = A1;
@@ -121,7 +121,7 @@ double MVCCalibration(int mvcSamples) {
 void setup() {
     Servo1.attach(servoPin); // attach servo to pin prior to use in code
     setpoint = 1500;
-    myPID.SetMode(AUTOMATIC); // Activate PID under automatic operation
+    // myPID.SetMode(AUTOMATIC); // Activate PID under automatic operation
 
     delay(5000); //delay 8 seconds to open up window
     Serial.println("Successful Upload: Starting Program");
@@ -188,10 +188,28 @@ void loop() {
                 //change_contract = -prev_contraction ;
                 // pulseWidth = contractionPulseMap (change_contract);
             //} else {
-              myPID.Compute();
-              // Servo1.writeMicroseconds(pulseWidthPID);
-            //  }
-            //  int prev_contraction = contraction;
+              //myPID.Compute();
+              double pk = 0.5;
+              double ik = 1;
+              double dk = 20;
+              double PID_in = pulseWidth - prev_pulsewidth;
+
+              double error_present = setpoint - PID_in;
+              double prop_factor = pk * error_present;
+
+              double error_past = error + prev_error;
+              double integral_factor = ik * error_past;
+
+              double error_future = error-prev_error;
+              double diff_factor = dk *error_future;
+
+              pulseWidthPID = PID_in + diff_factor + integral_factor + prop_factor;
+
+            //  Servo1.writeMicroseconds(pulseWidthPID);
+             }
+            int prev_contraction = contraction;
+            double prev_pulsewidth = pulseWidthPID;
+            double prev_error = error_present;
 
         if (pulseWidth < 2250 && pulseWidth > 750) {
             if (contraction > 75 || contraction < -75) {
