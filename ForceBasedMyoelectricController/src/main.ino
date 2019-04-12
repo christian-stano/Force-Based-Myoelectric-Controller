@@ -16,16 +16,11 @@ int servoPin = A2;//Teensy pin communicating with Servo
 Servo Servo1; // create servo object for arduino library implementation
 
 // Initialize Relevant PID elements
-// double setpoint= 1500;
-// double setpoint, pulseWidthPID, pulseWidth;
 double setpoint, pulseWidthPID, pulseWidth, pulseWidthPID2;
 int prev_contraction = 0;
 double prev_pulsewidth = 0;
 double prev_error = 0;
 double prev_error2 = 0;
-
-  // PID object definition in the form (input, output, set point, Proportional coefficient, Integral Coefficient, Differential Coefficient)
-// PID myPID(&pulseWidth, &pulseWidthPID, &setpoint, 0.5, 1, 10, DIRECT);
 
 int channel1 = A0;
 int channel2 = A1;
@@ -125,7 +120,6 @@ double MVCCalibration(int mvcSamples) {
 void setup() {
     Servo1.attach(servoPin); // attach servo to pin prior to use in code
     setpoint = 1500;
-    // myPID.SetMode(AUTOMATIC); // Activate PID under automatic operation
 
     delay(5000); //delay 8 seconds to open up window
     Serial.println("Successful Upload: Starting Program");
@@ -192,39 +186,26 @@ void loop() {
                 //change_contract = -prev_contraction ;
                 // pulseWidth = contractionPulseMap (change_contract);
             //} else {
-              //myPID.Compute();
-              double pk = 0.5;
-              double ik = 1;
-              double dk = 20;
-              double PID_in = pulseWidth - prev_pulsewidth; //with feedback
+              double pk = 0;
+              double ik = 0;
+              double dk = 4;
+
               double PID_in2 = pulseWidth; // without feedback
 
-              double error_present = setpoint - PID_in;
-              double prop_factor = pk * error_present;
-
-              double error_present2 = setpoint - PID_in2;
+              double error_present2 = - setpoint + PID_in2;
               double prop_factor2 = pk * error_present2;
-
-              double error_past = error_present + prev_error;
-              double integral_factor = ik * error_past;
 
               double error_past2 = error_present2 + prev_error2;
               double integral_factor2 = ik * error_past2;
 
-              double error_future = error_present - prev_error;
-              double diff_factor = dk *error_future;
-
               double error_future2 = error_present2 - prev_error2;
               double diff_factor2 = dk *error_future2;
 
-              pulseWidthPID = PID_in + diff_factor + integral_factor + prop_factor;
-              pulseWidthPID2 = PID_in2 + diff_factor2 + integral_factor2 + prop_factor2;
+              pulseWidthPID2 = setpoint + diff_factor2 + integral_factor2 + prop_factor2;
 
             //  Servo1.writeMicroseconds(pulseWidthPID);
              //}
-           prev_contraction = contraction;
-           prev_pulsewidth = pulseWidthPID;
-           prev_error = error_present;
+           //prev_contraction = contraction;
            prev_error2 = error_present2;
 
         if (pulseWidth < 2250 && pulseWidth > 750) {
@@ -239,16 +220,16 @@ void loop() {
             }
         }
 
-        Serial.print("DATA, TIME, ");
-        Serial.print(emgDifferential);
-        Serial.print(" , ");
-        Serial.print(contraction);
-        Serial.print(" , ");
-        Serial.print(pulseWidth);
-        Serial.print(" , ");
-        Serial.print(pulseWidthPID2);
-        Serial.print(" , ");
-        Serial.println(pulseWidthPID);
+        // Serial.print("DATA, TIME, ");
+        // Serial.print(emgDifferential);
+        // Serial.print(" , ");
+        // Serial.print(contraction);
+        // Serial.print(" , ");
+        // Serial.print(pulseWidth);
+        // Serial.print(" , ");
+        // Serial.print(pulseWidthPID2);
+        // Serial.print(" , ");
+        // Serial.println(pulseWidthPID);
 
         sampleCounter = 0;
         if (slidingWindow == 150) {
