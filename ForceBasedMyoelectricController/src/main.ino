@@ -62,7 +62,7 @@ void functionSampling() {
 int classifier(double emgDifferential) {
     int y;
 
-    if (emgDifferential < -3) {
+    if (emgDifferential < -2.5) {
         y = m_flexor*emgDifferential+b_flexor;
     } else if (emgDifferential > 3) {
         y = m_extensor*emgDifferential+b_extensor;
@@ -179,6 +179,7 @@ void loop() {
         int contraction = classifier(emgDifferential);
         pulseWidth = contractionPulseMap(contraction);
         int threshold = abs(contraction - contractionPrev);
+        contractionPrev = contraction;
 
         //Implement PID Considerations
 
