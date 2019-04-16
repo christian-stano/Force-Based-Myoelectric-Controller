@@ -9,17 +9,14 @@
 #include <Arduino.h>
 #include <IntervalTimer.h>
 #include <Servo.h>
-// #include <PID_v1.h>
 
 // Initialize relevant servo elements
 int servoPin = A2;//Teensy pin communicating with Servo
 Servo Servo1; // create servo object for arduino library implementation
 
 // Initialize Relevant PID elements
-double setpoint, pulseWidthPID, pulseWidth, pulseWidthPID2;
-int prev_contraction = 0;
+double setpoint, pulseWidth, pulseWidthPID2;
 double prev_pulsewidth = 0;
-double prev_error = 0;
 double prev_error2 = 0;
 
 int channel1 = A0;
@@ -183,31 +180,40 @@ void loop() {
 
         //Implement PID Considerations
 
-              //if (contract < 2 && contract > -2){
-                //change_contract = -prev_contraction ;
-                // pulseWidth = contractionPulseMap (change_contract);
-            //} else {
-              double pk = 0;
-              double ik = 0;
-              double dk = 4;
+            // if (contraction > 75 || contraction < -75) {
+            //     if (threshold > 10) {
+            //         prev_error2 = 0;
+            //     }
+            // } else {
+            //     if (threshold > 5) {
+            //         prev_error2 = 0;
+            //     }
+            // }
+            //
+            //   if (contraction < 5 && contraction > -5){
+            //     double change_contract = -contractionPrev ;
+            //     pulseWidthPID2 = contractionPulseMap (change_contract);
+            //     prev_error2 = 0;
+            // } else {
+            //   double pk = 0;
+            //   double ik = 0;
+            //   double dk = 4;
+            //
+            //   double PID_in2 = pulseWidth; // without feedback
+            //
+            //   double error_present2 = - setpoint + PID_in2;
+            //   double prop_factor2 = pk * error_present2;
+            //
+            //   double error_past2 = error_present2 + prev_error2;
+            //   double integral_factor2 = ik * error_past2;
+            //
+            //   double error_future2 = error_present2 - prev_error2;
+            //   double diff_factor2 = dk *error_future2;
+            //
+            //   pulseWidthPID2 = setpoint + diff_factor2 + integral_factor2 + prop_factor2;
+            //   prev_error2 = error_present2;
+            //  }
 
-              double PID_in2 = pulseWidth; // without feedback
-
-              double error_present2 = - setpoint + PID_in2;
-              double prop_factor2 = pk * error_present2;
-
-              double error_past2 = error_present2 + prev_error2;
-              double integral_factor2 = ik * error_past2;
-
-              double error_future2 = error_present2 - prev_error2;
-              double diff_factor2 = dk *error_future2;
-
-              pulseWidthPID2 = setpoint + diff_factor2 + integral_factor2 + prop_factor2;
-
-            //  Servo1.writeMicroseconds(pulseWidthPID);
-             //}
-           //prev_contraction = contraction;
-           prev_error2 = error_present2;
 
         if (pulseWidth < 2250 && pulseWidth > 750) {
             if (contraction > 75 || contraction < -75) {
