@@ -8,7 +8,7 @@
 #include <MyoControl.h>
 #include <Arduino.h>
 #include <IntervalTimer.h>
-#include <Servo.h>
+#include <Servo.h> // h file for servo communication
 
 // Initialize relevant servo elements
 int servoPin = A2;//Teensy pin communicating with Servo
@@ -16,11 +16,11 @@ Servo Servo1; // create servo object for arduino library implementation
 
 // Initialize Relevant PID elements
 double setpoint, pulseWidth, pulseWidthPID2;
-double prev_pulsewidth = 0;
-double prev_error2 = 0;
+double prev_pulsewidth = 0; // initial pulseWidth comparator
+double prev_error2 = 0; // intial error comparator
 
-int channel1 = A0;
-int channel2 = A1;
+int channel1 = A0; // Extensor Channel
+int channel2 = A1; // Flexor Channel
 
 double processedDataArrCh1[200];
 double processedDataArrCh2[200];
@@ -116,7 +116,8 @@ double MVCCalibration(int mvcSamples) {
 
 void setup() {
     Servo1.attach(servoPin); // attach servo to pin prior to use in code
-    setpoint = 1500;
+
+    setpoint = 1500; // The zero setpoint, or pulseWidth that results in relaxed position
 
     delay(5000); //delay 8 seconds to open up window
     Serial.println("Successful Upload: Starting Program");
@@ -178,41 +179,70 @@ void loop() {
         int threshold = abs(contraction - contractionPrev);
         contractionPrev = contraction;
 
-        //Implement PID Considerations
+        //Implementation of CLINICAL PID Considerations
 
-            // if (contraction > 75 || contraction < -75) {
-            //     if (threshold > 10) {
-            //         prev_error2 = 0;
-            //     }
-            // } else {
-            //     if (threshold > 5) {
-            //         prev_error2 = 0;
-            //     }
-            // }
+          double pk = 0; // Proportional Constant for PID
+          double ik = 0; // Integral Constant for PID
+          double dk = 4; // Differential Constant for PID
+
+            // Error Term Calculations for Decline to Position Maintenance
+            double PID_in2 = pulseWidth; // input to PID for manipualtion from the above software, is the pulseWidth (no feedback, given control scheme)
+
+            double error_present2 = - setpoint + PID_in2; // approximation of proportional error
+            double prop_factor2 = pk * error_present2; // approximation of proportional PID Factor
+
+            double error_past2 = error_present2 + prev_error2; // approximation of integral error
+            double integral_factor2 = ik * error_past2; // approximation of integral PID Factor
+
+            double error_future2 = error_present2 - prev_error2; // approximation of derivative error
+            double diff_factor2 = dk *error_future2; // approximation of differential PID Factor
+
+            // Redefine puslewidth given the error summation from setpoint
+            pulseWidthPID2 = setpoint + diff_factor2 + integral_factor2 + prop_factor2;
+
+            prev_error2 = error_present2; // redefin the previous error for next loop consideration
+
+            // If the system is changing position, or threshold has been met, as defined by the percieved contraction
+            // The PID will reset with previous error = 0 and the outputted pulsewidth = to the required change in position.
+            if (contraction > 75 || contraction < -75) {
+                // If in maximum regions, change in position only initiated if threshold > 10
+                if (threshold > 10) {
+                    // Total Change in position will be the difference between the two contraction states
+                    double change_contract = contraction-contractionPrev;
+                    pulseWidthPID2 = contractionPulseMap(change_contract); // map change in contraction to pulseWidth
+                    prev_error2 = 0; // reset PID for future maintenance of position
+                }
+            }
+            else {
+                // If in constant, linear classifier region, change in position only initiated if threshold > 5
+                if (threshold > 5) {
+                   // Total Change in position will be the difference between the two contraction states
+                    double change_contract = contraction-contractionPrev ;
+                    pulseWidthPID2 = contractionPulseMap(change_contract);// map change in contraction to pulseWidth
+                    prev_error2 = 0; // reset PID for future maintenance of position
+                }
+            }
+
+
+      // Implementation of PID for SERVO CONSTRUCT
+            // PID constant definition
+            //   double pk = 0; //proportional
+            //   double ik = 0; // integral
+            //   double dk = 4; //differential
             //
-            //   if (contraction < 5 && contraction > -5){
-            //     double change_contract = -contractionPrev ;
-            //     pulseWidthPID2 = contractionPulseMap (change_contract);
-            //     prev_error2 = 0;
-            // } else {
-            //   double pk = 0;
-            //   double ik = 0;
-            //   double dk = 4;
+            //   double PID_in2 = pulseWidth; // input to PID = to pulseWidth output from above
             //
-            //   double PID_in2 = pulseWidth; // without feedback
+            //   double error_present2 = - setpoint + PID_in2; // current error is the difference between setpoint an PID input
+            //   double prop_factor2 = pk * error_present2; // approximation of porportional PID factor
             //
-            //   double error_present2 = - setpoint + PID_in2;
-            //   double prop_factor2 = pk * error_present2;
+            //   double error_past2 = error_present2 + prev_error2; // approximation of integral error
+            //   double integral_factor2 = ik * error_past2; // approximation of integral PID factor
             //
-            //   double error_past2 = error_present2 + prev_error2;
-            //   double integral_factor2 = ik * error_past2;
+            //   double error_future2 = error_present2 - prev_error2; // approximation of differential error
+            //   double diff_factor2 = dk *error_future2; // approximation of differential PID factor
             //
-            //   double error_future2 = error_present2 - prev_error2;
-            //   double diff_factor2 = dk *error_future2;
-            //
-            //   pulseWidthPID2 = setpoint + diff_factor2 + integral_factor2 + prop_factor2;
-            //   prev_error2 = error_present2;
-            //  }
+            //   pulseWidthPID2 = setpoint + diff_factor2 + integral_factor2 + prop_factor2;/sum error with setpoint for pulseWidth output
+            //   prev_error2 = error_present2; //reset previous error
 
 
         if (pulseWidth < 2250 && pulseWidth > 750) {
