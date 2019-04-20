@@ -179,6 +179,19 @@ void loop() {
         int threshold = abs(contraction - contractionPrev);
         contractionPrev = contraction;
 
+
+        if (pulseWidth < 2250 && pulseWidth > 750) {
+            if (contraction > 75 || contraction < -75) {
+                if (threshold > 10) {
+                    Servo1.writeMicroseconds(pulseWidth);
+                }
+            } else {
+                if (threshold > 5) {
+                    Servo1.writeMicroseconds(pulseWidth);
+                }
+            }
+        }
+
         //Implementation of CLINICAL PID Considerations
 
           double pk = 0; // Proportional Constant for PID
@@ -223,6 +236,22 @@ void loop() {
                 }
             }
 
+            double pW_threshold = abs(prev_pulsewidth - pulseWidthPID2);// Use pulsewidth difference to threshold output changes, and remove flutter from baseline noise
+            prev_pulsewidth = pulseWidthPID2; // set the previous pulsewidth for the next loop
+
+            // Check PID output to ensure that it is not outside of the pulseWidth communication that can be handled by the prosthetic
+            if (pulseWidthPID2 < 2250 && pulseWidthPID2 > 750) {
+              // Threshold is changed based on the level of contraction, to ensure artifacts are not lost when thresholding pulse widths
+                if (contraction > 75 || contraction < -75) {
+                    if (pW_threshold > 10) {
+                        Servo1.writeMicroseconds(pulseWidthPID2); // if pulsewidth outside of threshold change write to object
+                    }
+                } else {
+                    if (pW_threshold > 5) {
+                        Servo1.writeMicroseconds(pulseWidthPID2); // if pulsewidth outside of threshold change write to object
+                    }
+                }
+            }
 
       // Implementation of PID for SERVO CONSTRUCT
             // PID constant definition
@@ -245,17 +274,6 @@ void loop() {
             //   prev_error2 = error_present2; //reset previous error
 
 
-        if (pulseWidth < 2250 && pulseWidth > 750) {
-            if (contraction > 75 || contraction < -75) {
-                if (threshold > 10) {
-                    Servo1.writeMicroseconds(pulseWidth);
-                }
-            } else {
-                if (threshold > 5) {
-                    Servo1.writeMicroseconds(pulseWidth);
-                }
-            }
-        }
 
         // Serial.print("DATA, TIME, ");
         // Serial.print(emgDifferential);
