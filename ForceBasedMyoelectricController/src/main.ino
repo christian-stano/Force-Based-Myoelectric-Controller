@@ -5,9 +5,22 @@
  * This code is distributed under a GPL 3.0 license
  */
 
-#include <MyoControl.h>
-#include <Arduino.h>
-#include <IntervalTimer.h>
+ /*
+ * Force Based Controller for Myoelectric Prostheses
+ * Authors: Christian Stano, Allyson King
+ * Email: cstano29@gmail.com
+ * This code and the associated libraries were developed by students at Vanderbilt University
+ under the guidance of Emily Gracyzk, Ph.D of Case Western Reserve University
+ * This software package translates raw EMG signals collected by two MyoWare
+ EMG sensors to Servo or prosthetic hand actuation. It includes sampling at 1000 Hz,
+ digital signal pre-processing via rectifying and a 1 Hz low pass smoothing filter,
+ a 200 ms sliding window that calculates the differential MAV, a contraction intent
+ classifier, and subsequent mapping to PWM for a Servo or prosthetic hand
+ */
+
+#include <MyoControl.h> // h file for custom developed MyoWare
+#include <Arduino.h> // h file for Arduino environment
+#include <IntervalTimer.h> // h file interrupt timer for 1000 Hz sampling
 #include <Servo.h> // h file for servo communication
 
 // Initialize relevant servo elements
@@ -22,31 +35,44 @@ double prev_error2 = 0; // intial error comparator
 int channel1 = A0; // Extensor Channel
 int channel2 = A1; // Flexor Channel
 
-double processedDataArrCh1[200];
-double processedDataArrCh2[200];
+double processedDataArrCh1[200]; // 200 ms window for extensor channel (contains pre-processed doubles)
+double processedDataArrCh2[200]; // 200 ms window for flexor channel (contains pre-processed doubles)
+// sampleCounter to keep track of when processing should occur (every 50 ms)
+// volatile type used because changed during interrupt
 volatile unsigned int sampleCounter = 0;
-unsigned int slidingWindow = 0;
-double m_extensor;
-double m_flexor;
-double b_extensor;
-double b_flexor;
-int contractionPrev = 0;
+unsigned int slidingWindow = 0; // position in processedDataArr
+double m_extensor; // slope for piecewise classifier above 75% extensor contraction
+double m_flexor; // slope for piecewise classifier below -75% flexor contraction
+double b_extensor; // intercept for piecewise classifier above 75% extensor contraction
+double b_flexor;  // intercept for piecewise classifier below -75% flexor contraction
+int contractionPrev = 0; // previous window's contraction level for use in thresholding
 
-MyoControl EMG_Channel1(channel1);
-MyoControl EMG_Channel2(channel2);
+MyoControl EMG_Channel1(channel1); // MyoControl object for extensor
+MyoControl EMG_Channel2(channel2); // MyoControl object for flexor
 
 /* Interval Timer allows interrupt to be called every 1 ms to set consistent
 sampling frequency of 1000 Hz
 */
 IntervalTimer calibrationTimer;
 IntervalTimer initialTimer;
-IntervalTimer MVCTimer;
 
+/*
+ * Calibration interrupt function
+ * Calls the MyoControl calibrationsampling() function every ms for both channels
+ * Used to find the mean of the signal during rest for baseline removal
+*/
 void calibrationSampling() {
     EMG_Channel1.calibrationSampling();
     EMG_Channel2.calibrationSampling();
 }
 
+/*
+ * Function interrupt
+ * Calls sampling sampling() function from MyoControl every ms for each channel
+ * Used to maintain 1000 Hz sampling rate during MVC calibration and regular function
+ * Inputs resulting pre-processed EMG data point into 200 ms array at point sampleCounter+slidingWindow
+ * Output: fills 200 ms array until sampleCounter = 49
+*/
 void functionSampling() {
     double emg1 = EMG_Channel1.sampling();
     double emg2 = EMG_Channel2.sampling();
@@ -56,12 +82,19 @@ void functionSampling() {
     sampleCounter++;
 }
 
+/*
+ * Piecewise linear classifier function
+ * Input: EMG MAV differential between extensor and flexor channels
+ * Note: uses dynamically adapted line from MVC calibration if differential MAV
+ * > 2.5 (> 75% contraction) or < -2.5 (< 75% contraction)
+ * Output: predicted contraction level (int)
+*/
 int classifier(double emgDifferential) {
     int y;
 
     if (emgDifferential < -2.5) {
         y = m_flexor*emgDifferential+b_flexor;
-    } else if (emgDifferential > 3) {
+    } else if (emgDifferential > 2.5) {
         y = m_extensor*emgDifferential+b_extensor;
     } else {
         y = 30*emgDifferential;
@@ -70,8 +103,8 @@ int classifier(double emgDifferential) {
     return (int)y;
 }
 
+// Maps contraction level to PWM for servo
 double contractionPulseMap(int contraction) {
-    // double pulseWidth;
     if (contraction > 0) { //extensor
         pulseWidth = -3.75*contraction + 1500;
     } else if (contraction < 0) { //flexor
@@ -82,12 +115,20 @@ double contractionPulseMap(int contraction) {
     return pulseWidth;
 }
 
+/*
+ * MVC Calibration function
+ * This function calculates the MVC over a period of contraction by the user
+ * which is used to dynamically adjust the classifier function for contractions
+ * > 75% or < 75%
+ * Input: mvcSamples- number of iterations of MVC calculations to perform
+ * Output: average MVC over mvcSamples iterations of calculation
+*/
 double MVCCalibration(int mvcSamples) {
     int i = 0;
     double emgMVC = 0;
     while (i < mvcSamples) {
-        if (sampleCounter == 49) {
-            noInterrupts();
+        if (sampleCounter == 49) { //process array every 50 ms
+            noInterrupts(); // pause interrupts until calculation complete
             double ch1sum = 0;
             double ch2sum = 0;
             for (unsigned int i = 0; i < 199; i++) {
@@ -105,10 +146,10 @@ double MVCCalibration(int mvcSamples) {
                 slidingWindow += 50;
             }
             i++;
-            interrupts();
+            interrupts(); // resume interrupts once loop completed
         }
     }
-    emgMVC = emgMVC/mvcSamples;
+    emgMVC = emgMVC/mvcSamples; //average MVC
     Serial.print("EMG MVC is: ");
     Serial.println(emgMVC);
     return emgMVC;
