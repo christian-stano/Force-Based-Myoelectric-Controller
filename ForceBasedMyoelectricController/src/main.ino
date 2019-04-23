@@ -160,17 +160,14 @@ void setup() {
 
     setpoint = 1500; // The zero setpoint, or pulseWidth that results in relaxed position
 
-    delay(5000); //delay 8 seconds to open up window
+    delay(5000); //delay 5 seconds to open up window
     Serial.println("Successful Upload: Starting Program");
-    Serial.begin(14400);
+    Serial.begin(14400); // Serial baud rate at 14400
 
-    Serial.println("LABEL,Time, MuscleA1, label2, label3");
-    Serial.println("RESETTIMER");
     // Calibration
-
-    calibrationTimer.begin(calibrationSampling,1000); //samples every 1000 microseconds
-    delay(3000);
-    Serial.println("Calibrating channel 1:");
+    calibrationTimer.begin(calibrationSampling,1000); //samples every 1000 microseconds or at 1000 Hz
+    delay(3000); //delay for stability
+    Serial.println("Calibrating channel 1:"); //extensor calibration
     delay(1000);
     EMG_Channel1.calibration();
     Serial.println("Channel 1 calibrated");
@@ -180,11 +177,11 @@ void setup() {
     Serial.println("Channel 2 calibrated");
     calibrationTimer.end(); //Stops sampling of calibration period
 
-    //Classifier Calibration via mvcCalc
+    //Classifier Calibration via MVCCalibration
     Serial.println("Begin MVC Calibration for Classifier");
     Serial.println("Perform MVC of extensor for 5 seconds");
-    initialTimer.begin(functionSampling,1000);
-    double extensorMVC = MVCCalibration(140);
+    initialTimer.begin(functionSampling,1000); // begin second interrupt timer
+    double extensorMVC = MVCCalibration(140); // MVC for approximately 7 seconds
     noInterrupts();
     Serial.println("Extensor MVC calibration complete");
     Serial.println("Perform MVC of flexor for 5 seconds");
@@ -193,19 +190,24 @@ void setup() {
     noInterrupts();
     Serial.println("Flexor MVC calibration complete");
 
-    m_extensor = EMG_Channel1.slopeCalc(1,extensorMVC); //1 indicates positive 90 used as mvcCalc
-    m_flexor = EMG_Channel2.slopeCalc(-1,flexorMVC);
+    // Upper and Lower Bound calculation of linear piecewise function
+    m_extensor = EMG_Channel1.slopeCalc(1,extensorMVC); //1 indicates positive 90% contraction of extensor
+    m_flexor = EMG_Channel2.slopeCalc(-1,flexorMVC); //-1 indicates negative 90% contraction of flexor
     b_extensor = EMG_Channel1.interceptCalc(1);
     b_flexor = EMG_Channel2.interceptCalc(-1);
     //Function
     Serial.println("Calibration complete: begin function in 5 seconds");
     interrupts();
-    // initialTimer.begin(functionSampling,1000);
 }
 
+/*
+ * loop() function
+ * Continuously runs throughout function of program, recalculating MAV differential,
+ contraction level, and output every 50 ms over the 200 ms processedDataArr
+*/
 void loop() {
     if (sampleCounter == 49) {
-        noInterrupts();
+        noInterrupts(); //pause interrupts during calculations for stability
         double ch1sum = 0;
         double ch2sum = 0;
         for (unsigned int i = 0; i < 199; i++) {
@@ -215,14 +217,14 @@ void loop() {
         double ch1MAV = ch1sum/200;
         double ch2MAV = ch2sum/200;
         double emgDifferential = ch1MAV - ch2MAV;
-        int contraction = classifier(emgDifferential);
-        pulseWidth = contractionPulseMap(contraction);
-        int threshold = abs(contraction - contractionPrev);
+        int contraction = classifier(emgDifferential); //gesture classifier
+        pulseWidth = contractionPulseMap(contraction); //map contraction to pulsewidth
+        int threshold = abs(contraction - contractionPrev); //calculate threshold
         contractionPrev = contraction;
 
-
-        if (pulseWidth < 2250 && pulseWidth > 750) {
-            if (contraction > 75 || contraction < -75) {
+        // Servo actuation
+        if (pulseWidth < 2250 && pulseWidth > 750) { //check if pulseWidth within saturation bounds
+            if (contraction > 75 || contraction < -75) { // higher threshold within bounds to prevent flutter
                 if (threshold > 10) {
                     Servo1.writeMicroseconds(pulseWidth);
                 }
@@ -314,25 +316,26 @@ void loop() {
             //   pulseWidthPID2 = setpoint + diff_factor2 + integral_factor2 + prop_factor2;/sum error with setpoint for pulseWidth output
             //   prev_error2 = error_present2; //reset previous error
 
+            // Check PID output to ensure that it is not outside of the pulseWidth communication that can be handled by the prosthetic
+            // if (pulseWidthPID2 < 2250 && pulseWidthPID2 > 750) {
+            //   // Threshold is changed based on the level of contraction, to ensure artifacts are not lost when thresholding pulse widths
+            //     if (contraction > 75 || contraction < -75) {
+            //         if (pW_threshold > 10) {
+            //             Servo1.writeMicroseconds(pulseWidthPID2); // if pulsewidth outside of threshold change write to object
+            //         }
+            //     } else {
+            //         if (pW_threshold > 5) {
+            //             Servo1.writeMicroseconds(pulseWidthPID2); // if pulsewidth outside of threshold change write to object
+            //         }
+            //     }
+            // }
 
-
-        // Serial.print("DATA, TIME, ");
-        // Serial.print(emgDifferential);
-        // Serial.print(" , ");
-        // Serial.print(contraction);
-        // Serial.print(" , ");
-        // Serial.print(pulseWidth);
-        // Serial.print(" , ");
-        // Serial.print(pulseWidthPID2);
-        // Serial.print(" , ");
-        // Serial.println(pulseWidthPID);
-
-        sampleCounter = 0;
+        sampleCounter = 0; //reset sampleCounter
         if (slidingWindow == 150) {
             slidingWindow = 0;
         } else {
             slidingWindow += 50;
         }
-        interrupts();
+        interrupts(); //resume sampling once calculation complete 
     }
 }

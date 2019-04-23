@@ -5,6 +5,15 @@
  * MyoControl is distributed under a GPL 3.0 license
  */
 
+ /*
+ * Force Based Controller for Myoelectric Prostheses
+ * Authors: Christian Stano, Allyson King
+ * Email: cstano29@gmail.com
+ * This code and the associated libraries were developed by students at Vanderbilt University
+ under the guidance of Emily Gracyzk, Ph.D of Case Western Reserve University
+ * This library provides functionality for interfacing with the MyoWare sensors for calibration and sampling
+ */
+
 #ifndef MyoControl_h
 #define MyoControl_h
 
@@ -18,24 +27,17 @@ class MyoControl {
         void calibration();
         double slopeCalc(int muscle, double emgMVC);
         double interceptCalc(int muscle);
-        // void activation();
-        // void printSamples();
     private:
-        // void blinkLED(uint8_t ledPin, unsigned int repeat, unsigned int bTime);
         void meanCalc(unsigned int meanSamples);
-        // double movAv();
-        // void mvcCalc(unsigned int mvcSamples);
         int emgpin;
         volatile unsigned int emg;
         double emgMean;
         double emgAvg;
         double slope;
-        // unsigned int sampleCounter;
         double emgMVC;
         bool sampleOk, isActive;
         double emg_u_prev;
         double emg_f_prev;
-        // double bufferArray[200];
 };
 
 #endif
