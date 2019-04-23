@@ -1,2 +1,11 @@
 # Force-Based-Myoelectric-Controller
-Repository containing version-control software development of a novel force-based control system for a myoelectric prosthesis.
+
+This software package includes libraries coded for the Arduino environment (specifically Teensy 3.6) for implementing force based control in a myoelectric prosthesis or Servo motor using MyoWare EMG sensors. The project is based on the PlatformIO environment to allow for easy integration with Teensy microcontrollers. 
+
+Overview of Project:
+To overcome user dissatisfaction with current prostheses, the Functional Neural Interface (FNI) Lab at Case Western Reserve University integrated sensory feedback into the prostheses of distal arm amputees using an implanted nerve electrode system. Because this current system relies on the velocity-based linear feedback control of myoelectric prostheses rather than the continuous control seen during natural hand posture maintenance, this system has reached a barrier in acquiring quantitative data as they begin in-home trials. To enable quantitative data acquisition for the FNI Lab, the goal of this project was to develop a novel control system that interfaces with commercially-available prostheses to integrate the natural, continuous feedback system present in intact musculature hand control. The system was developed using an embedded software controller that maps incoming electromyography signal amplitudes from forearm muscles to motor actuation, leveraging a feedback loop mechanism to replicate intact muscle control. Outputted pulse width modulation signals will be utilized to allow for prosthetic actuation and hand posture maintenance through continuous muscle activation. The software was trained using human phantom test trials and integrated with an electromyogram (EMG) microcontroller and a servo motor intended to mimic prosthesis behavior.
+
+Software Included:
+	1. PlatformIO and Git required files (test library, include library, .gitignore, .travis.yml, platformio.ini)
+	2. MyoControl library- creates an interface with the MyoWare sensors for EMG signal acquisition, preprocessing and calibration 
+	3. Src/main.ino- provides functionality to the system for sampling at 1000 Hz, calibration, processing via gesture classifer, PID control, and motor actuation 
