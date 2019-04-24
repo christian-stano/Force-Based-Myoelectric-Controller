@@ -32,7 +32,7 @@ static const double alpha2 = 0.001/(2*tau+0.001);
  * MyoControl object constructor
  * Creates a MyoControl object paired with the MyoWare sensor at emg_pin
  * Initializes emg_u_prev and emg_f_prev (needed values for Tustin approximation)
- to 0 and initializes object with following fields: emg, emgMean, emgAvg, slope,
+ to 0 and initializes object with following fields: emg, emgMean, slope,
  emgMVC, sampleOk, isActive
 */
 MyoControl::MyoControl(int emg_pin) {
@@ -122,7 +122,7 @@ double MyoControl::interceptCalc(int muscle) {
 /*
  * calibration function
  * Calculation of baseline for use in baseline removal during processing
- * Called from main.ino setup() function  
+ * Called from main.ino setup() function
 */
 void MyoControl::calibration() {
     /* System calibration */
