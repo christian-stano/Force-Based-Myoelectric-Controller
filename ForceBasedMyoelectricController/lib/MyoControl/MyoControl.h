@@ -33,8 +33,7 @@ class MyoControl {
         volatile unsigned int emg;
         double emgMean;
         double slope;
-        double emgMVC;
-        bool sampleOk, isActive;
+        bool sampleOk;
         double emg_u_prev;
         double emg_f_prev;
 };
